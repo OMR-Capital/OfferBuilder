@@ -2,7 +2,11 @@
 v: 0
 micros:
   - name: backend
-    src: ./backend/app
+    src: ./backend
     engine: python3.9
     primary: true
-    run: uvicorn main:app
+    run: uvicorn --app-dir=app main:app
+    public_routes:
+      - "/docs"
+      - "/openapi.json"
+      - "/redoc"
