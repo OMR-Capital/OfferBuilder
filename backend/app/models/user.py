@@ -25,9 +25,8 @@ class User(BaseModel):
     # Full name
     name: str
 
-    # Password. Password is stored as it is, without hashing
-    # because db security is enough for this project
-    password: str
+    # Hashed password. See `app.core.security.get_password_hash`
+    password_hash: str
 
     # User role
     role: UserRole
