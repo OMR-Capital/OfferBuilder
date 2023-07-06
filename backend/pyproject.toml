@@ -10,8 +10,11 @@ python = "^3.9"
 odetam = "^1.5.1"
 fastapi = "^0.99.1"
 uvicorn = "^0.22.0"
-passlib = "^1.7.4"
 python-jose = "^3.3.0"
+types-python-jose = "^3.3.4.7"
+types-passlib = "^1.7.7.12"
+passlib = {extras = ["brypt"], version = "^1.7.4"}
+bcrypt = "^4.0.1"
 
 
 [build-system]
