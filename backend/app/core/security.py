@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union
+from secrets import token_urlsafe
 
 from jose import jwt
 from passlib.context import CryptContext
@@ -35,6 +36,20 @@ def create_access_token(
         )
     token_data = {'exp': expire, 'sub': str(subject)}
     return jwt.encode(token_data, JWT_SECRET_KEY, algorithm=ALGORITHM)
+
+
+def generate_password(length: int = 4) -> str:
+    """Generate random password.
+
+    Password is generated with secrets.token_urlsafe().
+
+    Args:
+        length (int): Password length. Defaults to 4.
+
+    Returns:
+        str: Password.
+    """
+    return token_urlsafe(length)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

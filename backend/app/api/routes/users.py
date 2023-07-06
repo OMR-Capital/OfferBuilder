@@ -3,78 +3,159 @@
 Contains CRUD operations for users.
 """
 
-from fastapi import APIRouter
+from http import HTTPStatus
 
-from app.api.schemes.users import CreateUser
-from app.models.user import User, UserRole
+from fastapi import APIRouter, HTTPException
+
+from app.api.schemes.users import (UserCreate, UserListResponse, UserOut,
+                                   UserPasswordResponse, UserResponse,
+                                   UserUpdate)
+from app.core.security import generate_password, get_password_hash
+from app.core.users import generate_uid
+from app.db.user import UserInDB
 
 router = APIRouter(prefix='/users', tags=['users'])
 
 
+user_not_found = HTTPException(
+    status_code=HTTPStatus.NOT_FOUND,
+    detail='User not found',
+)
+
+
 @router.get('/')
-async def get_users() -> list[User]:
+async def get_users() -> UserListResponse:
     """Get all users.
 
     Returns:
-        List[User]: List of users.
+        UserListResponse: List of users.
     """
-    return []
+    db_user = await UserInDB.get_all()
+    users = [UserOut(**user.dict()) for user in db_user]
+    return UserListResponse(users=users)
 
 
-@router.get('/{user_id}')
-async def get_user(uid: str) -> User:
+@router.get('/{uid}')
+async def get_user(uid: str) -> UserResponse:
     """Get user by id.
 
     Args:
         uid (str): User id.
 
+    Raises:
+        user_not_found: Return 404 if user not found.
+
     Returns:
-        User: User object.
+        UserResponse: User object.
     """
-    return User(uid=uid, name='John Doe', password=uid, role=UserRole.employee)
+    db_user = await UserInDB.get_or_none(uid)
+    if not db_user:
+        raise user_not_found
+
+    return UserResponse(user=UserOut(**db_user.dict()))
 
 
 @router.post('/')
-async def create_user(user: CreateUser) -> User:
+async def create_user(user: UserCreate) -> UserPasswordResponse:
     """Create user.
 
+    Password and user id are generated automatically.
+    See `app.core.users.generate_uid` and `app.core.security.get_password_hash`
+    for more details.
+
     Args:
-        user (CreateUser): User data.
+        user (UserCreate): User name and role.
 
     Returns:
-        User: Created user object.
+        UserPasswordResponse: Created user object and generated password.
     """
-    return User(
-        uid='1',
+    password = generate_password()
+    password_hash = get_password_hash(password)
+    uid = generate_uid()
+
+    db_user = UserInDB(
+        uid=uid,
         name=user.name,
-        password=user.password,
+        password_hash=password_hash,
         role=user.role,
+    )
+    await db_user.save()
+
+    return UserPasswordResponse(
+        user=UserOut(**db_user.dict()),
+        password=password,
     )
 
 
-@router.put('/{user_id}')
-async def update_user(uid: str, user: CreateUser) -> User:
+@router.put('/{uid}')
+async def update_user(uid: str, user: UserUpdate) -> UserResponse:
     """Update user.
 
     Args:
         uid (str): User id.
-        user (CreateUser): User data.
+        user (UserUpdate): User name and role. None values are ignored.
+
+    Raises:
+        user_not_found: Return 404 if user not found.
 
     Returns:
-        User: Updated user object.
+        UserResponse: Updated user object.
     """
-    return User(
-        uid=uid,
-        name=user.name,
-        password=user.password,
-        role=user.role,
+    db_user = await UserInDB.get_or_none(uid)
+    if not db_user:
+        raise user_not_found
+
+    db_user.name = user.name or db_user.name
+    db_user.role = user.role or db_user.role
+    await db_user.save()
+
+    return UserResponse(user=UserOut(**db_user.dict()))
+
+
+@router.patch('/{uid}')
+async def update_user_password(uid: str) -> UserPasswordResponse:
+    """Generate new password for user.
+
+    Args:
+        uid (str): User id.
+
+    Raises:
+        user_not_found: Return 404 if user not found.
+
+    Returns:
+        UserPasswordResponse: User object and new password.
+    """
+    db_user = await UserInDB.get_or_none(uid)
+    if not db_user:
+        raise user_not_found
+
+    password = generate_password()
+    db_user.password_hash = get_password_hash(password)
+    await db_user.save()
+
+    return UserPasswordResponse(
+        user=UserOut(**db_user.dict()),
+        password=password,
     )
 
 
-@router.delete('/{user_id}')
-async def delete_user(uid: str) -> None:
+@router.delete('/{uid}')
+async def delete_user(uid: str) -> UserResponse:
     """Delete user.
 
     Args:
         uid (str): User id.
+
+    Raises:
+        user_not_found: Return 404 if user not found.
+
+    Returns:
+        UserResponse: Deleted user object.
     """
+    db_user = await UserInDB.get_or_none(uid)
+    if not db_user:
+        raise user_not_found
+
+    await db_user.delete()
+
+    return UserResponse(user=UserOut(**db_user.dict()))
