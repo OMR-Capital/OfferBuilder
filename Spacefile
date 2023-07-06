@@ -6,7 +6,7 @@ micros:
     engine: python3.9
     primary: true
     run: uvicorn --app-dir=app main:app
-    dev: poetry run uvicorn --app-dir=app main:app --reload
+    dev: uvicorn --app-dir=app main:app
     public_routes:
       - "/docs"
       - "/openapi.json"
