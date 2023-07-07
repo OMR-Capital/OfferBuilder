@@ -1,29 +1,52 @@
-"""Security utilities."""
+"""Auth  functions and utilities."""
 
 from datetime import datetime, timedelta
-from typing import Any, Optional, Union
 from secrets import token_urlsafe
+from typing import Any, Optional
 
 from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_SECRET_KEY
+from app.db.user import UserInDB
+from app.models.user import User
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+
+
+async def authenticate_user(uid: str, password: str) -> Optional[User]:
+    """Verify user credentials.
+
+    Args:
+        uid (str): User id.
+        password (str): User password.
+
+    Returns:
+        Optional[User]: User instance if credentials are valid.
+    """
+    db_user = await UserInDB.get_or_none(uid)
+    if not db_user:
+        return None
+
+    if not verify_password(password, db_user.password_hash):
+        return None
+
+    return User(**db_user.dict())
 
 
 ALGORITHM = 'HS256'
 
 
-def create_access_token(
-    subject: Union[str, Any],
+def create_user_access_token(
+    uid: str,
     expires_delta: Optional[timedelta] = None,
 ) -> str:
-    """Create access JWT token.
+    """Create access JWT token for user auth.
 
     Args:
-        subject (Union[str, Any]): Token subject.
-        expires_delta (timedelta, optional): Expires time. Defaults to None.
+        uid (str): User id. Will be used as JWT subject.
+        expires_delta (timedelta, optional): \
+            Expires time. Defaults to ACCESS_TOKEN_EXPIRE_MINUTES.
 
     Returns:
         str: JWT token.
@@ -34,8 +57,21 @@ def create_access_token(
         expire = datetime.utcnow() + timedelta(
             minutes=ACCESS_TOKEN_EXPIRE_MINUTES,
         )
-    token_data = {'exp': expire, 'sub': str(subject)}
+
+    token_data = {'exp': expire, 'sub': uid}
     return jwt.encode(token_data, JWT_SECRET_KEY, algorithm=ALGORITHM)
+
+
+def get_access_token_payload(token: str) -> dict[str, Any]:
+    """Get access token payload.
+
+    Args:
+        token (str): JWT token.
+
+    Returns:
+        dict[str, Any]: Token payload.
+    """
+    return jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
 
 
 def generate_password(length: int = 4) -> str:
