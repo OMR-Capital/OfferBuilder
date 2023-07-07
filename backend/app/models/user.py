@@ -1,4 +1,8 @@
-"""User model."""
+"""User model.
+
+Users is a part of authentication system.
+Them also used to sign offers.
+"""
 
 
 from enum import Enum
@@ -19,7 +23,7 @@ class UserRole(Enum):
 class User(BaseModel):
     """User representation in business logic."""
 
-    # Model id from database
+    # User id. Will be used as login and primary key in database
     uid: str
 
     # Full name
