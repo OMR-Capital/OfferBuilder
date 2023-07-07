@@ -15,6 +15,7 @@ types-python-jose = "^3.3.4.7"
 types-passlib = "^1.7.7.12"
 passlib = {extras = ["brypt"], version = "^1.7.4"}
 bcrypt = "^4.0.1"
+python-multipart = "^0.0.6"
 
 
 [build-system]
