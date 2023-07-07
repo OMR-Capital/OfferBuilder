@@ -3,29 +3,46 @@
 Contains CRUD operations for users.
 """
 
-from http import HTTPStatus
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
 
 from app.api.schemes.users import (UserCreate, UserListResponse, UserOut,
                                    UserPasswordResponse, UserResponse,
                                    UserUpdate)
-from app.core.security import generate_password, get_password_hash
+from app.core.auth import generate_password, get_password_hash
 from app.core.users import generate_uid
 from app.db.user import UserInDB
+from app.dependencies import get_admin, get_current_user
+from app.exceptions import AdminRightsRequired, UserNotFound
+from app.models.user import User, UserRole
 
 router = APIRouter(prefix='/users', tags=['users'])
 
 
-user_not_found = HTTPException(
-    status_code=HTTPStatus.NOT_FOUND,
-    detail='User not found',
-)
+@router.get('/me')
+async def get_my_user(
+    user: Annotated[User, Depends(get_current_user)],
+) -> UserResponse:
+    """Get current user.
+
+    Args:
+        user (User): Authorized user model.
+
+    Returns:
+        UserResponse: _description_
+    """
+    return UserResponse(user=UserOut(**user.dict()))
 
 
 @router.get('/')
-async def get_users() -> UserListResponse:
+async def get_users(
+    admin: Annotated[User, Depends(get_admin)],
+) -> UserListResponse:
     """Get all users.
+
+    Args:
+        admin (User): Current user must be an admin.
 
     Returns:
         UserListResponse: List of users.
@@ -36,27 +53,42 @@ async def get_users() -> UserListResponse:
 
 
 @router.get('/{uid}')
-async def get_user(uid: str) -> UserResponse:
+async def get_user(
+    uid: str,
+    user: Annotated[User, Depends(get_current_user)],
+) -> UserResponse:
     """Get user by id.
+
+    If current user is not admin, only self info available.
+    Admin can get any user.
 
     Args:
         uid (str): User id.
+        user (User): Current user.
 
     Raises:
-        user_not_found: Return 404 if user not found.
+        UserNotFound: If user not found.
+        AdminRightsRequired: \
+            If non-admin user tries to get info about other user.
 
     Returns:
         UserResponse: User object.
     """
+    if user.role != UserRole.admin and user.uid != uid:
+        raise AdminRightsRequired()
+
     db_user = await UserInDB.get_or_none(uid)
     if not db_user:
-        raise user_not_found
+        raise UserNotFound()
 
     return UserResponse(user=UserOut(**db_user.dict()))
 
 
 @router.post('/')
-async def create_user(user: UserCreate) -> UserPasswordResponse:
+async def create_user(
+    user_data: UserCreate,
+    admin: Annotated[User, Depends(get_admin)],
+) -> UserPasswordResponse:
     """Create user.
 
     Password and user id are generated automatically.
@@ -64,7 +96,8 @@ async def create_user(user: UserCreate) -> UserPasswordResponse:
     for more details.
 
     Args:
-        user (UserCreate): User name and role.
+        user_data (UserCreate): User name and role.
+        admin (User): Current user must be an admin.
 
     Returns:
         UserPasswordResponse: Created user object and generated password.
@@ -75,9 +108,9 @@ async def create_user(user: UserCreate) -> UserPasswordResponse:
 
     db_user = UserInDB(
         uid=uid,
-        name=user.name,
+        name=user_data.name,
         password_hash=password_hash,
-        role=user.role,
+        role=user_data.role,
     )
     await db_user.save()
 
@@ -88,46 +121,55 @@ async def create_user(user: UserCreate) -> UserPasswordResponse:
 
 
 @router.put('/{uid}')
-async def update_user(uid: str, user: UserUpdate) -> UserResponse:
+async def update_user(
+    uid: str,
+    user_data: UserUpdate,
+    admin: Annotated[User, Depends(get_admin)],
+) -> UserResponse:
     """Update user.
 
     Args:
         uid (str): User id.
-        user (UserUpdate): User name and role. None values are ignored.
+        user_data (UserUpdate): User name and role. None values are ignored.
+        admin (User): Current user must be an admin.
 
     Raises:
-        user_not_found: Return 404 if user not found.
+        UserNotFound: If user not found.
 
     Returns:
         UserResponse: Updated user object.
     """
     db_user = await UserInDB.get_or_none(uid)
     if not db_user:
-        raise user_not_found
+        raise UserNotFound()
 
-    db_user.name = user.name or db_user.name
-    db_user.role = user.role or db_user.role
+    db_user.name = user_data.name or db_user.name
+    db_user.role = user_data.role or db_user.role
     await db_user.save()
 
     return UserResponse(user=UserOut(**db_user.dict()))
 
 
 @router.patch('/{uid}')
-async def update_user_password(uid: str) -> UserPasswordResponse:
+async def update_user_password(
+    uid: str,
+    admin: Annotated[User, Depends(get_admin)],
+) -> UserPasswordResponse:
     """Generate new password for user.
 
     Args:
         uid (str): User id.
+        admin (User): Current user must be an admin.
 
     Raises:
-        user_not_found: Return 404 if user not found.
+        UserNotFound: If user not found.
 
     Returns:
         UserPasswordResponse: User object and new password.
     """
     db_user = await UserInDB.get_or_none(uid)
     if not db_user:
-        raise user_not_found
+        raise UserNotFound()
 
     password = generate_password()
     db_user.password_hash = get_password_hash(password)
@@ -140,21 +182,25 @@ async def update_user_password(uid: str) -> UserPasswordResponse:
 
 
 @router.delete('/{uid}')
-async def delete_user(uid: str) -> UserResponse:
+async def delete_user(
+    uid: str,
+    admin: Annotated[User, Depends(get_admin)],
+) -> UserResponse:
     """Delete user.
 
     Args:
         uid (str): User id.
+        admin (User): Current user must be an admin.
 
     Raises:
-        user_not_found: Return 404 if user not found.
+        UserNotFound: If user not found.
 
     Returns:
         UserResponse: Deleted user object.
     """
     db_user = await UserInDB.get_or_none(uid)
     if not db_user:
-        raise user_not_found
+        raise UserNotFound()
 
     await db_user.delete()
 
