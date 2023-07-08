@@ -1,5 +1,6 @@
 """Schemes of wastes API."""
 
+from typing import Optional
 from pydantic import BaseModel
 
 from app.models.waste import FKKOCode, Waste
@@ -15,8 +16,8 @@ class WasteCreate(BaseModel):
 class WasteUpdate(BaseModel):
     """Update waste scheme."""
 
-    name: str
-    fkko_code: FKKOCode
+    name: Optional[str]
+    fkko_code: Optional[FKKOCode]
 
 
 class WasteResponse(BaseModel):

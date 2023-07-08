@@ -75,14 +75,14 @@ async def create_waste(
         WasteResponse: Created waste.
     """
     waste_id = generate_id()
-    waste = WasteInDB(
+    db_waste = WasteInDB(
         waste_id=waste_id,
         name=waste_data.name,
         fkko_code=waste_data.fkko_code,
     )
-    await waste.save()
+    await db_waste.save()
 
-    return WasteResponse(waste=Waste(**waste.dict()))
+    return WasteResponse(waste=Waste(**db_waste.dict()))
 
 
 @router.put('/{waste_id}')
@@ -108,8 +108,8 @@ async def update_waste(
     if not db_waste:
         raise WasteNotFound()
 
-    db_waste.name = waste_data.name
-    db_waste.fkko_code = waste_data.fkko_code
+    db_waste.name = waste_data.name or db_waste.name
+    db_waste.fkko_code = waste_data.fkko_code or db_waste.fkko_code
     await db_waste.save()
 
     return WasteResponse(waste=Waste(**db_waste.dict()))
