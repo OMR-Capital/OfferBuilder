@@ -1,4 +1,4 @@
-"""Authentication API."""
+"""Authorization API."""
 
 from typing import Annotated
 
@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.schemes.auth import Token
-from app.core.auth import authenticate_user, create_user_access_token
+from app.core.auth import authorize_user, create_user_access_token
 from app.exceptions import Unauthorized
 
 router = APIRouter(prefix='/auth', tags=['auth'])
@@ -27,7 +27,7 @@ async def login(
     Returns:
         Token: JWT access token.
     """
-    user = await authenticate_user(form_data.username, form_data.password)
+    user = await authorize_user(form_data.username, form_data.password)
     if not user:
         raise Unauthorized()
 

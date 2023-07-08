@@ -14,7 +14,7 @@ from app.models.user import User
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
-async def authenticate_user(uid: str, password: str) -> Optional[User]:
+async def authorize_user(uid: str, password: str) -> Optional[User]:
     """Verify user credentials.
 
     Args:

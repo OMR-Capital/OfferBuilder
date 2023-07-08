@@ -1,6 +1,6 @@
 """User model.
 
-Users is a part of authentication system.
+Users is a part of authorization system.
 Them also used to sign offers.
 """
 
