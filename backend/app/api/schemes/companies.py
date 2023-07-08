@@ -5,13 +5,25 @@ from pydantic import BaseModel
 from app.models.company import Company
 
 
+class CompanyCreate(BaseModel):
+    """Create company scheme."""
+
+    name: str
+
+
+class CompanyUpdate(BaseModel):
+    """Update company scheme."""
+
+    name: str
+
+
 class CompanyResponse(BaseModel):
-    """User response scheme."""
+    """Company response scheme."""
 
     company: Company
 
 
 class CompanyListResponse(BaseModel):
-    """User list response scheme."""
+    """Company list response scheme."""
 
     companies: list[Company]

@@ -7,7 +7,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.api.schemes.companies import CompanyListResponse, CompanyResponse
+from app.api.schemes.companies import (CompanyCreate, CompanyListResponse,
+                                       CompanyResponse, CompanyUpdate)
 from app.core.models import generate_id
 from app.db.company import CompanyInDB
 from app.dependencies import get_admin, get_current_user
@@ -61,20 +62,23 @@ async def get_company(
 
 @router.post('/')
 async def create_company(
-    name: str,
+    company_data: CompanyCreate,
     admin: Annotated[User, Depends(get_admin)],
 ) -> CompanyResponse:
     """Create a new company.
 
     Args:
-        name (str): Company name.
+        company_data (CompanyCreate): Company name.
         admin (User): Current user must be an admin.
 
     Returns:
         CompanyResponse: Created company.
     """
     company_id = generate_id()
-    company = CompanyInDB(company_id=company_id, name=name)
+    company = CompanyInDB(
+        company_id=company_id,
+        name=company_data.name,
+    )
     await company.save()
 
     return CompanyResponse(company=Company(**company.dict()))
@@ -83,14 +87,14 @@ async def create_company(
 @router.put('/{company_id}')
 async def update_company(
     company_id: str,
-    name: str,
+    company_data: CompanyUpdate,
     admin: Annotated[User, Depends(get_admin)],
 ) -> CompanyResponse:
     """Update company.
 
     Args:
         company_id (str): Company id.
-        name (str): Company name.
+        company_data (CompanyUpdate): Company name.
         admin (User): Current user must be an admin.
 
     Raises:
@@ -103,7 +107,7 @@ async def update_company(
     if not db_company:
         raise CompanyNotFound()
 
-    db_company.name = name
+    db_company.name = company_data.name
     await db_company.save()
     return CompanyResponse(company=Company(**db_company.dict()))
 
