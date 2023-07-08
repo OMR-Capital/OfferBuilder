@@ -12,7 +12,7 @@ from app.api.schemes.companies import (CompanyCreate, CompanyListResponse,
 from app.core.models import generate_id
 from app.db.company import CompanyInDB
 from app.dependencies import get_admin, get_current_user
-from app.exceptions import CompanyNotFound
+from app.api.exceptions import CompanyNotFound
 from app.models.company import Company
 from app.models.user import User
 

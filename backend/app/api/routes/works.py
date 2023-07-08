@@ -12,7 +12,7 @@ from app.api.schemes.works import (WorkCreate, WorkListResponse, WorkResponse,
 from app.core.models import generate_id
 from app.db.work import WorkInDB
 from app.dependencies import get_admin, get_current_user
-from app.exceptions import WorkNotFound
+from app.api.exceptions import WorkNotFound
 from app.models.user import User
 from app.models.work import Work
 

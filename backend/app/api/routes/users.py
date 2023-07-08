@@ -14,7 +14,7 @@ from app.core.auth import generate_password, get_password_hash
 from app.core.users import generate_uid
 from app.db.user import UserInDB
 from app.dependencies import get_admin, get_current_user
-from app.exceptions import AdminRightsRequired, UserNotFound
+from app.api.exceptions import AdminRightsRequired, UserNotFound
 from app.models.user import User, UserRole
 
 router = APIRouter(prefix='/users', tags=['users'])

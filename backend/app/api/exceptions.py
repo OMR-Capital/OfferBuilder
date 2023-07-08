@@ -1,4 +1,4 @@
-"""Extensions."""
+"""API exceptions."""
 
 
 from http import HTTPStatus

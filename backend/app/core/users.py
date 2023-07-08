@@ -8,7 +8,7 @@ from jose import JWTError
 
 from app.core.auth import get_access_token_payload
 from app.db.user import UserInDB
-from app.exceptions import AdminRightsRequired, Unauthorized
+from app.api.exceptions import AdminRightsRequired, Unauthorized
 from app.models.user import User, UserRole
 
 

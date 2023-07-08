@@ -12,7 +12,7 @@ from app.api.schemes.wastes import (WasteCreate, WasteListResponse,
 from app.core.models import generate_id
 from app.db.waste import WasteInDB
 from app.dependencies import get_admin, get_current_user
-from app.exceptions import WasteNotFound
+from app.api.exceptions import WasteNotFound
 from app.models.user import User
 from app.models.waste import Waste
 
