@@ -1,4 +1,4 @@
-"""Application dependencies."""
+"""API dependencies."""
 
 
 from typing import Annotated
