@@ -18,3 +18,5 @@ micros:
           description: "Secret key for JWT generation"
         - name: "ACCESS_TOKEN_EXPIRE_MINUTES"
           description: "Time in minutes for access token expiration"
+        - name: "AGENTS_API_KEY"
+          description: "API key for Dadata"
