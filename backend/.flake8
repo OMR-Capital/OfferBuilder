@@ -1,3 +1,0 @@
-[flake8]
-# Many false-positives of useless try/except
-extend-ignore = WPS329
