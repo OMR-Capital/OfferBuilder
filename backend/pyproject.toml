@@ -17,7 +17,11 @@ passlib = {extras = ["brypt"], version = "^1.7.4"}
 bcrypt = "^4.0.1"
 python-multipart = "^0.0.6"
 docxtpl = "^0.16.7"
+requests = "^2.31.0"
 
+
+[tool.poetry.group.dev.dependencies]
+types-requests = "^2.31.0.1"
 
 [build-system]
 requires = ["poetry-core"]
