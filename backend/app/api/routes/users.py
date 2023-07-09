@@ -7,14 +7,20 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.api.schemes.users import (UserCreate, UserListResponse, UserOut,
-                                   UserPasswordResponse, UserResponse,
-                                   UserUpdate)
+from app.api.dependencies import get_admin, get_current_user
+from app.api.exceptions.auth import AdminRightsRequired
+from app.api.exceptions.users import UserNotFound
+from app.api.schemes.users import (
+    UserCreate,
+    UserListResponse,
+    UserOut,
+    UserPasswordResponse,
+    UserResponse,
+    UserUpdate,
+)
 from app.core.auth import generate_password, get_password_hash
 from app.core.users import generate_uid
 from app.db.user import UserInDB
-from app.api.dependencies import get_admin, get_current_user
-from app.api.exceptions import AdminRightsRequired, UserNotFound
 from app.models.user import User, UserRole
 
 router = APIRouter(prefix='/users', tags=['users'])
@@ -28,6 +34,9 @@ async def get_my_user(
 
     Args:
         user (User): Authorized user model.
+
+    Raises:
+        UserNotFound: If user not found in database.
 
     Returns:
         UserResponse: _description_

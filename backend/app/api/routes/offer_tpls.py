@@ -10,17 +10,25 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from app.api.dependencies import get_admin, get_current_user
-from app.api.exceptions import (IncorrectOfferTemplateFile,
-                                OfferTemplateNotFound,
-                                OfferTemplateUploadFailed)
-from app.api.schemes.offer_tpls import (OfferTemplateCreate,
-                                        OfferTemplateListResponse,
-                                        OfferTemplateResponse,
-                                        OfferTemplateUpdate)
+from app.api.exceptions.offer_tpls import (
+    IncorrectOfferTemplateFile,
+    OfferTemplateNotFound,
+    OfferTemplateUploadFailed,
+)
+from app.api.schemes.offer_tpls import (
+    OfferTemplateCreate,
+    OfferTemplateListResponse,
+    OfferTemplateResponse,
+    OfferTemplateUpdate,
+)
 from app.core.models import generate_id
-from app.core.offer_tpls import (delete_offer_tpl_file, get_offer_tpl_file,
-                                 get_offer_tpls_drive, save_offer_tpl_file,
-                                 validate_offer_tpl_file)
+from app.core.offer_tpls import (
+    delete_offer_tpl_file,
+    get_offer_tpl_file,
+    get_offer_tpls_drive,
+    save_offer_tpl_file,
+    validate_offer_tpl_file,
+)
 from app.db.offer_tpl import OfferTemplateInDB
 from app.models.offer_tpl import OfferTemplate
 from app.models.user import User
@@ -74,10 +82,8 @@ async def get_offer_tpl(
     )
 
 
-DOCX_MIME_TYPE = (
-    'application/vnd.openxmlformats-' +
-    'officedocument.wordprocessingml.document'
-)
+# flake8: noqa: E501
+DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
 
 @router.get('/{offer_tpl_id}/download')

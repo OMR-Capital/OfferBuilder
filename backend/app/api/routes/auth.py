@@ -5,9 +5,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
+from app.api.exceptions.auth import Unauthorized
 from app.api.schemes.auth import Token
 from app.core.auth import authorize_user, create_user_access_token
-from app.api.exceptions import Unauthorized
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
