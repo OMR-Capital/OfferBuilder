@@ -1,6 +1,7 @@
 """Schemes of wastes API."""
 
 from typing import Optional
+
 from pydantic import BaseModel
 
 from app.models.waste import FKKOCode, Waste
