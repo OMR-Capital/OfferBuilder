@@ -31,3 +31,12 @@ class IncorrectOfferTemplateFile(HTTPException):
         """Initialize the exception."""
         self.status_code = HTTPStatus.BAD_REQUEST
         self.detail = 'Only docx files are allowed.'
+
+
+class IncorrectOfferTemplateContext(HTTPException):
+    """Raised when the offer template context is not valid."""
+
+    def __init__(self) -> None:
+        """Initialize the exception."""
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = 'Incorrect offer template context.'

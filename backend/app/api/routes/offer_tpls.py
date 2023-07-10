@@ -16,6 +16,7 @@ from app.api.exceptions.offer_tpls import (
     OfferTemplateUploadFailed,
 )
 from app.api.schemes.offer_tpls import (
+    OfferBuild,
     OfferTemplateCreate,
     OfferTemplateListResponse,
     OfferTemplateResponse,
@@ -24,6 +25,7 @@ from app.api.schemes.offer_tpls import (
 from app.core.models import generate_id
 from app.core.offer_tpls import (
     delete_offer_tpl_file,
+    fill_offer_tpl,
     get_offer_tpl_file,
     get_offer_tpls_drive,
     save_offer_tpl_file,
@@ -114,7 +116,6 @@ async def download_offer_tpl(
         raise OfferTemplateNotFound()
 
     offer_tpl_stream = BytesIO(offer_tpl_data)
-
     headers = {
         'Content-Disposition': 'attachment; filename="{filename}"'.format(
             filename=db_offer_tpl.name,
@@ -252,4 +253,48 @@ async def delete_offer_tpl(
 
     return OfferTemplateResponse(
         offer_tpl=OfferTemplate(**db_offer_tpl.dict()),
+    )
+
+
+@router.post('/{offer_tpl_id}/build')
+async def build_offer_tpl(
+    offer_tpl_id: str,
+    offer_data: OfferBuild,
+    drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
+    user: Annotated[User, Depends(get_current_user)],
+) -> StreamingResponse:
+    """Fill offer template with data and return filled file.
+
+    Args:
+        offer_tpl_id (str): Offer template id.
+        offer_data (OfferBuild): Offer data.
+        drive (Annotated[_Drive, Depends): Offer templates drive.
+        user (Annotated[User, Depends): Current user.
+
+    Returns:
+        StreamingResponse: Filled offer template file.
+    """
+    context = offer_data.context
+    context['author'] = user.name
+
+    db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
+    if not db_offer_tpl:
+        raise OfferTemplateNotFound()
+
+    offer_tpl_data = get_offer_tpl_file(drive, offer_tpl_id)
+    if not offer_tpl_data:
+        raise OfferTemplateNotFound()
+
+    filled_offer_tpl_data = fill_offer_tpl(offer_tpl_data, context)
+
+    offer_tpl_stream = BytesIO(filled_offer_tpl_data)
+    headers = {
+        'Content-Disposition': 'attachment; filename="{filename}"'.format(
+            filename=db_offer_tpl.name,
+        ),
+    }
+    return StreamingResponse(
+        offer_tpl_stream,
+        media_type=DOCX_MIME_TYPE,
+        headers=headers,
     )

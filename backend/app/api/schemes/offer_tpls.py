@@ -1,7 +1,7 @@
 """Schemes of offer templates API."""
 
 
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -32,3 +32,9 @@ class OfferTemplateUpdate(BaseModel):
 
     name: Optional[str] = None
     offer_tpl_file: Optional[str] = None
+
+
+class OfferBuild(BaseModel):
+    """Offer build scheme."""
+
+    context: dict[str, Any]
