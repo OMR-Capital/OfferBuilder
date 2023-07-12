@@ -4,13 +4,14 @@ micros:
   - name: backend
     src: ./backend
     engine: python3.9
-    primary: true
     run: uvicorn --app-dir=app main:app
     dev: uvicorn --app-dir=app main:app
     public_routes:
       - "/docs"
       - "/openapi.json"
       - "/redoc"
+
+    path: api
 
     presets:
       env:
@@ -20,3 +21,12 @@ micros:
           description: "Time in minutes for access token expiration"
         - name: "AGENTS_API_KEY"
           description: "API key for Dadata"
+
+  - name: frontend
+    primary: true
+    src: ./frontend
+    engine: svelte-kit
+    dev: npm run dev
+
+    public_routes:
+      - "/"
