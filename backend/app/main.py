@@ -38,7 +38,10 @@ def create_app() -> FastAPI:
     Returns:
         FastAPI: FastAPI application.
     """
-    app = FastAPI(title='Offer Builder')
+    app = FastAPI(
+        title='Offer Builder',
+        root_path='/api',
+    )
     app.include_router(users_router)
     app.include_router(auth_router)
     app.include_router(companies_router)
