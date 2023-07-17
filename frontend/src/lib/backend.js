@@ -1,54 +1,5 @@
 const BACKEND_URL = '/api';
 
-/**
- * @type {string | null}
- */
-let authToken = null;
-
-/**
- * Set auth token.
- *
- * @param {string} token
- */
-export function setToken(token) {
-	authToken = token;
-}
-
-/**
- * Get auth token.
- *
- * @returns {string | null}
- */
-export function getToken() {
-	return authToken;
-}
-
-/**
- * Send request with auth token.
- *
- * @param {string} url
- * @param {object} options
- * @param {string} options.method
- * @param {BodyInit} options.body
- * @param {HeadersInit} options.headers
- */
-export async function request(url, options) {
-	let token = getToken();
-	if (!token) {
-		throw new Error('No auth token');
-	}
-
-	options.headers = options.headers || {};
-	// @ts-ignore
-	options.headers['Authorization'] = 'Bearer ' + token;
-
-	let response = await fetch(url, {
-		method: options.method,
-		body: options.body,
-		headers: options.headers
-	});
-	return response;
-}
 
 /**
  * Authorize user via OAuth2
@@ -83,8 +34,58 @@ export async function auth(username, password) {
 	/**
 	 * @type {string}
 	 */
-	let token = json.access_token;
-	setToken(token);
-
+    let token = json.access_token;
 	return { token };
+}
+
+
+/**
+ * Fetch backend API with authorization token.
+ *
+ * @param {string} path - relative API endpoint path
+ * @param {string} token - Authorization token
+ * @param {object} [options] - fetch options
+ * @param {string} [options.method]
+ * @param {Record<string, any>} [options.body]
+ * @param {Record<string, string>} [options.headers]
+ * @param {boolean} [options.json]
+ * @param {boolean} [options.formData]
+ * @param {boolean} [options.raw]
+ */
+export async function fetchApi(path, token, options = {}) {
+    let url = BACKEND_URL + path;
+
+    let headers = options.headers || {};
+    headers['Authorization'] = 'Bearer ' + token;
+    headers['Accept'] = 'application/json';
+
+    let body;
+    if (options.formData ) {
+        body = new FormData();
+        for (let key in options.body) {
+            body.append(key, options.body[key]);
+        }
+    } else if (options.json) {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify(options.body);
+    }
+
+    let response = await fetch(url, {
+        method: options.method || 'GET',
+        headers: headers,
+        body: body,
+    });
+
+    if (response.status == 401) {
+        throw new Error('Unauthorized');
+    } else if (response.status != 200) {
+        throw new Error('Unknown error');
+    }
+
+    if (options.raw) {
+        return response;
+    }
+
+    let json = await response.json();
+    return json;
 }
