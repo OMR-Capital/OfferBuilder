@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fetchApi } from '$lib/backend';
 	import Card, { Content } from '@smui/card';
 
 	export let data;
@@ -8,12 +9,25 @@
 	<Card padded>
 		<Content>
 			<div class="user-content">
-				<div class="user-content__item user-title">
-					<h6>User</h6>
-				</div>
-				<div class="user-content__item">
-					<p>{data.token}</p>
-				</div>
+				{#await fetchApi('/users/me', data.token)}
+                <div class="user-content__item">
+                    <p>Загрузка...</p>
+                </div>
+				{:then response}
+                    <div class="user-content__item user-title">
+                        <h6>{response.user.name}</h6>
+                    </div>
+                    <div class="user-content__item">
+                        <p>Роль: {response.user.role}</p>
+                    </div>
+                    <div class="user-content__item">
+                        <p>Логин: {response.user.uid}</p>
+                    </div>
+				{:catch error}
+					<div class="user-content__item">
+						<p>{error}</p>
+					</div>
+				{/await}
 			</div>
 		</Content>
 	</Card>
