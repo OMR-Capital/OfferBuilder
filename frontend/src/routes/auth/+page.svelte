@@ -3,22 +3,25 @@
 	import Button, { Label } from '@smui/button';
 	import Card, { Content } from '@smui/card';
 	import { auth } from '$lib/backend';
+	import { setCookie } from '$lib/cookies';
 
 	let username = '';
 	let password = '';
 	let authFailed = false;
 
 	async function login() {
-		const token = await auth(username, password).catch(() => {
+		try {
+			const { token } = await auth(username, password);
+			if (token) {
+				authFailed = false;
+				setCookie('token', token, 7);
+				window.location.href = '/me';
+			} else {
+				authFailed = true;
+			}
+		} catch (err) {
 			authFailed = true;
-		});
-		if (token) {
-            authFailed = false;
-            document.cookie = `token=${token}; path=/`;
-			window.location.href = '/me';
-		} else {
-            authFailed = true;
-        }
+		}
 	}
 </script>
 
