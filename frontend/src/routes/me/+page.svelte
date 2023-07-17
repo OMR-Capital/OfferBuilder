@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import Card, { Content } from '@smui/card';
 
 	export let data;
