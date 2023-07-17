@@ -4,6 +4,8 @@ export async function load({ cookies }) {
 	const token = cookies.get('token');
 	if (!token) {
 		throw redirect(307, '/auth');
-    }
-    throw redirect(307, '/me');
+	}
+	return {
+		token: token
+	};
 }
