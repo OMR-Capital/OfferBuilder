@@ -31,3 +31,12 @@ class AdminRightsRequired(HTTPException):
         """Initialize the exception."""
         self.status_code = HTTPStatus.FORBIDDEN
         self.detail = 'Admin rights are required.'
+
+
+class AccessDenied(HTTPException):
+    """Raised when the resource access is denied."""
+
+    def __init__(self) -> None:
+        """Initialize the exception."""
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = 'Access denied.'

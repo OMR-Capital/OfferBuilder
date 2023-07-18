@@ -16,6 +16,13 @@ class UserOut(BaseModel):
     role: UserRole
 
 
+class MyUserUpdate(BaseModel):
+    """Update my user scheme."""
+
+    login: Optional[str] = None
+    name: Optional[str] = None
+
+
 class UserCreate(BaseModel):
     """Create user scheme."""
 

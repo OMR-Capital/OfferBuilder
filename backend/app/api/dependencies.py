@@ -9,7 +9,7 @@ from jose import JWTError
 
 from app.api.exceptions.auth import Unauthorized
 from app.api.exceptions.users import AdminRightsRequired
-from app.core import users
+from app.core.users import get_authorized_user, get_verified_admin
 from app.models.user import User
 
 # Authorization form in Swagger UI doesn't work properly under Deta proxy
@@ -36,7 +36,7 @@ async def get_current_user(
         User: User instance.
     """
     try:
-        user = await users.get_authorized_user(token)
+        user = await get_authorized_user(token)
     except JWTError:
         raise Unauthorized()
 
@@ -62,7 +62,7 @@ async def get_admin(
     Returns:
         User: Admin user.
     """
-    admin = await users.get_verified_admin(user)
+    admin = await get_verified_admin(user)
     if admin is None:
         raise AdminRightsRequired()
 
