@@ -67,7 +67,8 @@ async def update_my_user(
         raise UserNotFound()
 
     if user_data.login:
-        if not check_login(user_data.login):
+        login_unique = await check_login(user_data.login)
+        if not login_unique:
             raise LoginAlreadyExists()
 
         db_user.login = user_data.login or db_user.login
