@@ -1,27 +1,29 @@
 <script lang="ts">
-	import { fetchApi } from '$lib/backend';
+	import { UsersAPI } from '$lib/backend/api/users.js';
 	import Card, { Content } from '@smui/card';
 
 	export let data;
+
+    const usersApi = new UsersAPI(data.token);
 </script>
 
 <div class="user-container">
 	<Card padded>
 		<Content>
 			<div class="user-content">
-				{#await fetchApi('/users/me', data.token)}
+				{#await usersApi.getMyUser()}
                 <div class="user-content__item">
                     <p>Загрузка...</p>
                 </div>
-				{:then response}
+				{:then user}
                     <div class="user-content__item user-title">
-                        <h6>{response.user.name}</h6>
+                        <h6>{user.name}</h6>
                     </div>
                     <div class="user-content__item">
-                        <p>Роль: {response.user.role}</p>
+                        <p>Роль: {user.role}</p>
                     </div>
                     <div class="user-content__item">
-                        <p>Логин: {response.user.uid}</p>
+                        <p>Логин: {user.uid}</p>
                     </div>
 				{:catch error}
 					<div class="user-content__item">
