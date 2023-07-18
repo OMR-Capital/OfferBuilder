@@ -3,9 +3,8 @@
 from typing import Any
 
 from odetam.async_model import AsyncDetaModel
-from pydantic import BaseConfig, Field, validator
+from pydantic import BaseConfig, validator
 
-from app.core.models import generate_id
 from app.models.user import User
 
 
