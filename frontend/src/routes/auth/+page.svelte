@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { auth } from '$lib/backend';
+	import { auth } from '$lib/backend/utils';
 	import { setCookie } from '$lib/cookies';
 	import Button, { Label } from '@smui/button';
 	import Card, { Content } from '@smui/card';
@@ -48,7 +48,7 @@
 					<Textfield
 						label="Пароль"
 						type="password"
-						style="width: 100%; display;"
+						style="width: 100%;"
 						invalid={authFailed}
 						bind:value={password}
 						on:input={() => (authFailed = false)}
