@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_admin, get_current_user
 from app.api.exceptions.auth import AdminRightsRequired
-from app.api.exceptions.users import UserNotFound
+from app.api.exceptions.users import LoginAlreadyExists, UserNotFound
 from app.api.schemes.users import (
     UserCreate,
     UserListResponse,
@@ -19,7 +19,7 @@ from app.api.schemes.users import (
     UserUpdate,
 )
 from app.core.auth import generate_password, get_password_hash
-from app.core.users import generate_uid
+from app.core.users import check_login, generate_uid
 from app.db.user import UserInDB
 from app.models.user import User, UserRole
 
@@ -101,6 +101,8 @@ async def create_user(
     """Create user.
 
     Password and user id are generated automatically.
+    On creation login set to user id. Can be changed later.
+
     See `app.core.users.generate_uid` and `app.core.security.get_password_hash`
     for more details.
 
@@ -117,6 +119,7 @@ async def create_user(
 
     db_user = UserInDB(
         uid=uid,
+        login=uid,
         name=user_data.name,
         password_hash=password_hash,
         role=user_data.role,
@@ -144,6 +147,7 @@ async def update_user(
 
     Raises:
         UserNotFound: If user not found.
+        LoginAlreadyExists: If login already exists.
 
     Returns:
         UserResponse: Updated user object.
@@ -151,6 +155,12 @@ async def update_user(
     db_user = await UserInDB.get_or_none(uid)
     if not db_user:
         raise UserNotFound()
+
+    if user_data.login:
+        if not check_login(user_data.login):
+            raise LoginAlreadyExists()
+
+        db_user.login = user_data.login or db_user.login
 
     db_user.name = user_data.name or db_user.name
     db_user.role = user_data.role or db_user.role

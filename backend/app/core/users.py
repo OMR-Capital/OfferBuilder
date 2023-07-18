@@ -62,3 +62,19 @@ async def get_verified_admin(user: User) -> Optional[User]:
         return None
 
     return user
+
+
+async def check_login(login: str) -> bool:
+    """Check if login is already taken.
+
+    Args:
+        login (str): Login to check.
+
+    Returns:
+        bool: True if login is already taken, False otherwise.
+    """
+    # ODetaM queries are not typed properly, so we need to use ignore
+    users_with_same_login = await UserInDB.query(
+        UserInDB.login == login,  # type: ignore
+    )
+    return bool(users_with_same_login)

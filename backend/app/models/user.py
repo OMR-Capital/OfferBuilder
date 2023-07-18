@@ -23,8 +23,11 @@ class UserRole(Enum):
 class User(BaseModel):
     """User representation in business logic."""
 
-    # User id. Will be used as login and primary key in database
+    # User id. Used as key in database
     uid: str
+
+    # Login
+    login: str
 
     # Full name
     name: str

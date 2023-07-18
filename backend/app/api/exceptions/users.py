@@ -13,3 +13,12 @@ class UserNotFound(HTTPException):
         """Initialize the exception."""
         self.status_code = HTTPStatus.NOT_FOUND
         self.detail = 'User not found'
+
+
+class LoginAlreadyExists(HTTPException):
+    """Raised when the login already exists."""
+
+    def __init__(self) -> None:
+        """Initialize the exception."""
+        self.status_code = HTTPStatus.CONFLICT
+        self.detail = 'Login already exists'

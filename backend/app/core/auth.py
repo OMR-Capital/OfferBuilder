@@ -14,19 +14,24 @@ from app.models.user import User
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 
-async def authorize_user(uid: str, password: str) -> Optional[User]:
+async def authorize_user(login: str, password: str) -> Optional[User]:
     """Verify user credentials.
 
     Args:
-        uid (str): User id.
+        login (str): User login.
         password (str): User password.
 
     Returns:
         Optional[User]: User instance if credentials are valid.
     """
-    db_user = await UserInDB.get_or_none(uid)
-    if not db_user:
+    # ODetaM queries are not typed properly, so we need to use ignore
+    users_with_login = await UserInDB.query(
+        UserInDB.login == login,  # type: ignore
+    )
+    if not users_with_login:
         return None
+
+    db_user = users_with_login[0]
 
     if not verify_password(password, db_user.password_hash):
         return None

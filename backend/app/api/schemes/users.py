@@ -11,6 +11,7 @@ class UserOut(BaseModel):
     """Public user scheme."""
 
     uid: str
+    login: str
     name: str
     role: UserRole
 
@@ -25,6 +26,7 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     """Update user scheme."""
 
+    login: Optional[str] = None
     name: Optional[str] = None
     role: Optional[UserRole] = None
 
