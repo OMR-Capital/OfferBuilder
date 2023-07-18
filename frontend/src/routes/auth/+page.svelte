@@ -5,6 +5,8 @@
 	import { auth } from '$lib/backend';
 	import { setCookie } from '$lib/cookies';
 
+    export let data;
+
 	let username = '';
 	let password = '';
 	let authFailed = false;
@@ -14,7 +16,7 @@
 			const { token } = await auth(username, password);
 			if (token) {
 				authFailed = false;
-				setCookie('token', token, 7);
+				setCookie('token', token, data.tokenExpireMinutes);
 				window.location.href = '/me';
 			} else {
 				authFailed = true;
