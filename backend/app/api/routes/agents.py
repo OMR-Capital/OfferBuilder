@@ -1,10 +1,11 @@
 """Agents API."""
 
 from typing import Annotated
+
 from fastapi import APIRouter
 from fastapi.params import Depends
-from app.api.dependencies import get_current_user
 
+from app.api.dependencies import get_current_user
 from app.api.exceptions.agents import AgentNotFound
 from app.api.schemes.agents import AgentResponse
 from app.core.agents import get_agent
