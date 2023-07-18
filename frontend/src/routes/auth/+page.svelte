@@ -1,11 +1,12 @@
-<script>
-	import Textfield from '@smui/textfield';
-	import Button, { Label } from '@smui/button';
-	import Card, { Content } from '@smui/card';
+<script lang="ts">
 	import { auth } from '$lib/backend';
 	import { setCookie } from '$lib/cookies';
+	import Button, { Label } from '@smui/button';
+	import Card, { Content } from '@smui/card';
+	import Textfield from '@smui/textfield';
+	import HelperText from '@smui/textfield/helper-text';
 
-    export let data;
+	export let data;
 
 	let username = '';
 	let password = '';
@@ -35,21 +36,33 @@
 					<h6>Авторизация</h6>
 				</div>
 				<div class="auth-content__item">
-					<Textfield label="Логин" bind:value={username} style="width: 100%;" />
+					<Textfield
+						label="Логин"
+						style="width: 100%;"
+						invalid={authFailed}
+						bind:value={username}
+						on:input={() => (authFailed = false)}
+					/>
 				</div>
 				<div class="auth-content__item">
-					<Textfield label="Пароль" type="password" bind:value={password} style="width: 100%;" />
+					<Textfield
+						label="Пароль"
+						type="password"
+						style="width: 100%; display;"
+						invalid={authFailed}
+						bind:value={password}
+						on:input={() => (authFailed = false)}
+					>
+						<HelperText persistent slot="helper">
+							{authFailed ? 'Неверный логин или пароль' : ''}
+						</HelperText>
+					</Textfield>
 				</div>
 				<div class="auth-content__item">
 					<Button variant="outlined" on:click={login} style="width: 100%;">
 						<Label>Войти</Label>
 					</Button>
 				</div>
-				{#if authFailed}
-					<div class="auth-content__item">
-						<p style="color: red;">Неверный логин или пароль</p>
-					</div>
-				{/if}
 			</div>
 		</Content>
 	</Card>
