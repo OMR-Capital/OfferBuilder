@@ -22,3 +22,12 @@ class LoginAlreadyExists(HTTPException):
         """Initialize the exception."""
         self.status_code = HTTPStatus.CONFLICT
         self.detail = 'Login already exists'
+
+
+class AdminRightsRequired(HTTPException):
+    """Raised when the resource requires admin rights."""
+
+    def __init__(self) -> None:
+        """Initialize the exception."""
+        self.status_code = HTTPStatus.FORBIDDEN
+        self.detail = 'Admin rights are required.'

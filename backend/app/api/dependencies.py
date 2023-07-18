@@ -7,7 +7,8 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 
-from app.api.exceptions.auth import AdminRightsRequired, Unauthorized
+from app.api.exceptions.auth import Unauthorized
+from app.api.exceptions.users import AdminRightsRequired
 from app.core import users
 from app.models.user import User
 

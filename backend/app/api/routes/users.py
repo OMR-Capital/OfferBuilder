@@ -8,8 +8,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_admin, get_current_user
-from app.api.exceptions.auth import AdminRightsRequired
-from app.api.exceptions.users import LoginAlreadyExists, UserNotFound
+from app.api.exceptions.users import (
+    AdminRightsRequired,
+    LoginAlreadyExists,
+    UserNotFound,
+)
 from app.api.schemes.users import (
     UserCreate,
     UserListResponse,
