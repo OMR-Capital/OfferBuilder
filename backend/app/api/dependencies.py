@@ -11,7 +11,11 @@ from app.api.exceptions.auth import AdminRightsRequired, Unauthorized
 from app.core import users
 from app.models.user import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
+# Authorization form in Swagger UI doesn't work properly under Deta proxy
+# So, we need to specify prefix manually
+PROXY_PREFIX = '/api'
+token_url = '{prefix}/auth/token'.format(prefix=PROXY_PREFIX)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=token_url)
 
 
 async def get_current_user(
