@@ -1,21 +1,19 @@
-import { fetchApi } from "./utils";
+import type { Result } from './utils';
+import { fetchApi } from './utils';
 
 export class BaseAPI {
-    private token: string;
+	private token: string;
 
-    constructor(token: string) {
-        this.token = token;
-    }
+	constructor(token: string) {
+		this.token = token;
+	}
 
-    async fetchApi(
-        path: string,
-        options: {
-            method?: string;
-            body?: Record<string, any>;
-            headers?: Record<string, string>;
-            formData?: boolean;
-        } = {}
-    ): Promise<any> {
-        return await fetchApi(path, this.token, options);
-    }
+	async fetchApi(
+		path: string,
+		method: string,
+		json?: object,
+		headers: object = {}
+	): Promise<Result<object>> {
+		return await fetchApi(path, method, this.token, json, headers);
+	}
 }

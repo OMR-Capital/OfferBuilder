@@ -3,10 +3,10 @@ import { browser } from '$app/environment';
 /**
  * Set a cookie with a given name and value and expiration days.
  */
-export function setCookie(name: string, value: any, expirationMinutes: number) {
+export function setCookie(name: string, value: unknown, expirationMinutes: number) {
 	if (!browser) {
 		return false;
-    }
+	}
 
 	const date = new Date();
 	date.setTime(date.getTime() + expirationMinutes * 60 * 1000);

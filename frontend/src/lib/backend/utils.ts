@@ -1,19 +1,29 @@
 const BACKEND_URL = '/api';
 
+export class HTTPError {
+	constructor(public message: string, public status: number) {}
+}
+
+export type Result<T> = { ok: true; value: T } | { ok: false; error: HTTPError };
+
+interface AuthResponse {
+	access_token: string;
+}
+
 /**
  * Authorize user via OAuth2
  */
 export async function auth(username: string, password: string): Promise<{ token: string }> {
-	let url = BACKEND_URL + '/auth/token';
+	const url = BACKEND_URL + '/auth/token';
 
-	let formData = new FormData();
+	const formData = new FormData();
 	formData.append('grant_type', '');
 	formData.append('client_id', '');
 	formData.append('client_secret', '');
 	formData.append('username', username);
 	formData.append('password', password);
 
-	let response = await fetch(url, {
+	const response = await fetch(url, {
 		method: 'POST',
 		body: formData
 	});
@@ -24,8 +34,8 @@ export async function auth(username: string, password: string): Promise<{ token:
 		throw new Error('Unknown error');
 	}
 
-	let json = await response.json();
-	return { token: json.access_token };
+	const result = (await response.json()) as AuthResponse;
+	return { token: result.access_token };
 }
 
 /**
@@ -33,43 +43,29 @@ export async function auth(username: string, password: string): Promise<{ token:
  */
 export async function fetchApi(
 	path: string,
+	method: string,
 	token: string,
-    options: {
-        method?: string;
-        body?: Record<string, any>;
-        headers?: Record<string, string>;
-        formData?: boolean;
-    } = {}
-): Promise<any> {
-	let url = BACKEND_URL + path;
+	json?: object,
+	headers: object = {}
+): Promise<Result<object>> {
+	const url = BACKEND_URL + path;
 
-	let headers = options.headers || {};
-	headers['Authorization'] = 'Bearer ' + token;
-	headers['Accept'] = 'application/json';
+	const headers_ = {
+		Authorization: 'Bearer ' + token,
+		Accept: 'application/json',
+		'Content-Type': 'application/json',
+		...headers
+	};
 
-	let body;
-	if (options.formData) {
-		body = new FormData();
-		for (let key in options.body) {
-			body.append(key, options.body[key]);
-		}
-	} else {
-		headers['Content-Type'] = 'application/json';
-		body = JSON.stringify(options.body);
-	}
-
-	let response = await fetch(url, {
-		method: options.method || 'GET',
-		headers: headers,
-		body: body
+	const response = await fetch(url, {
+		method,
+		headers: headers_,
+		body: json ? JSON.stringify(json) : undefined
 	});
 
-	if (response.status == 401) {
-		throw new Error('Unauthorized');
-	} else if (response.status != 200) {
-		throw new Error('Unknown error');
+	if (response.status != 200) {
+		return { ok: false, error: new HTTPError(response.statusText, response.status) };
 	}
-
-	let json = await response.json();
-	return json;
+	const result = (await response.json()) as object;
+	return { ok: true, value: result };
 }
