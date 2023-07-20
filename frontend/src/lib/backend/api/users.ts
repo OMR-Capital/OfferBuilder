@@ -1,6 +1,6 @@
-import { BaseAPI } from "../base_api";
-import type { User } from "../models/users";
-import type { Result } from "../utils";
+import { BaseAPI } from '../base_api';
+import type { User } from '../models/users';
+import type { Result } from '../utils';
 
 interface UserResponse {
 	user: User;
@@ -9,6 +9,16 @@ interface UserResponse {
 interface UserUpdate {
 	name?: string;
 	login?: string;
+}
+
+interface UserCreate {
+	name: string;
+	role: string;
+}
+
+interface UserWithPassword {
+	user: User;
+	password: string;
 }
 
 export class UsersAPI extends BaseAPI {
@@ -26,13 +36,39 @@ export class UsersAPI extends BaseAPI {
 			return { ok: true, value: result.value.user };
 		}
 		return result;
-    }
+	}
 
-    async regenMyPassword(): Promise<Result<string>> {
-        const result = (await this.fetchApi('/users/me/password', 'PATCH')) as Result<{ password: string }>;
-        if (result.ok) {
-            return { ok: true, value: result.value.password };
-        }
-        return result;
-    }
+	async regenMyPassword(): Promise<Result<string>> {
+		const result = (await this.fetchApi('/users/me/password', 'PATCH')) as Result<{
+			password: string;
+		}>;
+		if (result.ok) {
+			return { ok: true, value: result.value.password };
+		}
+		return result;
+	}
+
+	async getUsers(): Promise<Result<User[]>> {
+		const result = (await this.fetchApi('/users', 'GET')) as Result<{ users: User[] }>;
+		if (result.ok) {
+			return { ok: true, value: result.value.users };
+		}
+		return result;
+	}
+
+	async deleteUser(uid: string): Promise<Result<User>> {
+		const result = (await this.fetchApi(`/users/${uid}`, 'DELETE')) as Result<UserResponse>;
+		if (result.ok) {
+			return { ok: true, value: result.value.user };
+		}
+		return result;
+	}
+
+	async createUser(userData: UserCreate): Promise<Result<UserWithPassword>> {
+		const result = (await this.fetchApi('/users', 'POST', userData)) as Result<UserWithPassword>;
+		if (result.ok) {
+			return { ok: true, value: result.value };
+		}
+		return result;
+	}
 }
