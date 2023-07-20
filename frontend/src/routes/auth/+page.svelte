@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { auth } from '$lib/backend/utils';
-	import { setCookie } from '$lib/cookies';
+	import { setCookie } from 'typescript-cookie';
 	import Button, { Label } from '@smui/button';
 	import Card, { Content } from '@smui/card';
 	import Textfield from '@smui/textfield';
@@ -17,7 +17,8 @@
 			const { token } = await auth(username, password);
 			if (token) {
 				authFailed = false;
-				setCookie('token', token, data.tokenExpireMinutes);
+				const expires = new Date(new Date().getTime() + data.tokenExpireMinutes * 60 * 1000);
+				setCookie('token', token, { expires: expires });
 				window.location.href = '/me';
 			} else {
 				authFailed = true;
