@@ -26,5 +26,13 @@ export class UsersAPI extends BaseAPI {
 			return { ok: true, value: result.value.user };
 		}
 		return result;
-	}
+    }
+
+    async regenMyPassword(): Promise<Result<string>> {
+        const result = (await this.fetchApi('/users/me/password', 'PATCH')) as Result<{ password: string }>;
+        if (result.ok) {
+            return { ok: true, value: result.value.password };
+        }
+        return result;
+    }
 }
