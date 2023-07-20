@@ -16,16 +16,16 @@
 		</Section>
 		<Section align="end" toolbar>
 			{#if $page.route.id == '/(authorized)/me'}
-				<Button href="/generator" target="_blank">
+				<Button href="/generator">
 					<Label>Генератор</Label>
 				</Button>
 			{:else}
-				<Button href="/me" target="_blank">
+				<Button href="/me">
 					<Label>Мой профиль</Label>
 				</Button>
 			{/if}
 			{#if $user.role == UserRole.Admin}
-				<Button href="/admin" target="_blank">
+				<Button href="/admin">
 					<Label>Управление</Label>
 				</Button>
 			{/if}
