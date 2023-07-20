@@ -3,6 +3,7 @@
 	import CircularLoader from '$lib/components/CircularLoader.svelte';
 	import { user } from '$lib/stores';
 	import { onMount } from 'svelte';
+	import PageWithNavbar from './PageWithNavbar.svelte';
 
 	export let data;
 
@@ -31,19 +32,20 @@
 </script>
 
 {#if $user}
-	<slot />
+	<PageWithNavbar>
+		<slot />
+	</PageWithNavbar>
 {:else}
-    <div class="loader-container">
-        <CircularLoader size="large"/>
-    </div>
+	<div class="loader-container">
+		<CircularLoader size="large" />
+	</div>
 {/if}
 
-
 <style>
-    .loader-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
+	.loader-container {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100vh;
+	}
 </style>
