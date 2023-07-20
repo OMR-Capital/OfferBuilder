@@ -6,6 +6,10 @@ interface UserResponse {
 	user: User;
 }
 
+interface UsersResponse {
+    users: User[];
+}
+
 interface UserUpdate {
 	name?: string;
 	login?: string;
@@ -49,7 +53,7 @@ export class UsersAPI extends BaseAPI {
 	}
 
 	async getUsers(): Promise<Result<User[]>> {
-		const result = (await this.fetchApi('/users', 'GET')) as Result<{ users: User[] }>;
+		const result = (await this.fetchApi('/users', 'GET')) as Result<UsersResponse>;
 		if (result.ok) {
 			return { ok: true, value: result.value.users };
 		}
