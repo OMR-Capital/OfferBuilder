@@ -15,29 +15,10 @@
 
 	const userApi = new UsersAPI(data.token);
 
-	let name = '';
+	let name = $user.name;
 	let nameUpdated = false;
 	let nameUpdating = false;
 	let nameError = '';
-
-	function resetName(newName: string) {
-		name = newName;
-		nameError = '';
-		nameUpdating = false;
-	}
-
-	let login = '';
-	let loginUpdated = false;
-	let loginUpdating = false;
-	let loginError = '';
-
-	function resetLogin(newLogin: string) {
-		login = newLogin;
-		loginError = '';
-		loginUpdating = false;
-	}
-
-	let password: string | null = null;
 
 	async function updateName() {
 		if (name === $user.name) {
@@ -49,11 +30,16 @@
 			nameError = result.error.message;
 		} else {
 			$user = result.value;
-			resetName($user.name);
+            name = $user.name;
 			nameUpdated = true;
 		}
 		nameUpdating = false;
 	}
+
+	let login = $user.login;
+	let loginUpdated = false;
+	let loginUpdating = false;
+	let loginError = '';
 
 	async function updateLogin() {
 		if (login === $user.login) {
@@ -65,19 +51,24 @@
 			loginError = result.error.message;
 		} else {
 			$user = result.value;
-			resetLogin($user.login);
+            login = $user.login;
 			loginUpdated = true;
 		}
 		loginUpdating = false;
 	}
 
+	let password: string | null = null;
+    let passwordUpdating = false;
+
 	async function regenPassword() {
+        passwordUpdating = true;
 		const result = await userApi.regenMyPassword();
 		if (!result.ok) {
 			loginError = result.error.message;
 		} else {
 			password = result.value;
 		}
+        passwordUpdating = false;
 	}
 
 	async function updateUser(): Promise<User> {
@@ -86,8 +77,8 @@
 			throw result.error;
 		} else {
 			$user = result.value;
-			resetName($user.name);
-			resetLogin($user.login);
+            name = $user.name;
+            login = $user.login;
 			return result.value;
 		}
 	}
@@ -157,7 +148,9 @@
 					<div class="user-content__item">
 						{#if password}
 							<p>Ваш новый пароль: <strong>{password}</strong></p>
-						{:else}
+						{:else if passwordUpdating}
+                            <CircularLoader size="small" />
+                        {:else}
 							<Wrapper>
 								<Button variant="outlined" style="width: 100%" on:click={regenPassword}>
 									Обновить пароль
