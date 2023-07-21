@@ -15,16 +15,17 @@
 			<IconButton onClick={() => {}} icon="description" />
 		</Section>
 		<Section align="end" toolbar>
-			{#if $page.route.id == '/(authorized)/me'}
+			{#if $page.route.id != '/(authorized)/generator'}
 				<Button href="/generator">
 					<Label>Генератор</Label>
 				</Button>
-			{:else}
+            {/if}
+			{#if $page.route.id != '/(authorized)/me'}
 				<Button href="/me">
 					<Label>Мой профиль</Label>
 				</Button>
 			{/if}
-			{#if $user.role == UserRole.Admin}
+			{#if $user.role == UserRole.Admin && $page.route.id != '/(authorized)/admin'}
 				<Button href="/admin">
 					<Label>Управление</Label>
 				</Button>
