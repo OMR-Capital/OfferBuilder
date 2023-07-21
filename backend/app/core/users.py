@@ -1,6 +1,5 @@
 """Utilities for users."""
 
-import logging
 from secrets import choice
 from string import ascii_letters
 from typing import Optional
@@ -78,5 +77,4 @@ async def check_login(login: str) -> bool:
     users_with_same_login = await UserInDB.query(
         UserInDB.login == login,  # type: ignore
     )
-    logging.debug(f'users_with_same_login: {users_with_same_login}')
     return not bool(users_with_same_login)
