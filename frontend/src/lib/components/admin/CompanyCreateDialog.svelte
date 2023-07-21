@@ -6,7 +6,7 @@
 	import Dialog, { Content, Title } from '@smui/dialog';
 	import HelperText from '@smui/select/helper-text';
 	import Textfield from '@smui/textfield';
-	import CircularLoader from '../CircularLoader.svelte';
+	import CircularLoader from '$lib/components/CircularLoader.svelte';
 
 	export let token: string;
 	export let open: boolean;
@@ -51,7 +51,7 @@
 	aria-describedby="dialog-content"
 	on:SMUIDialog:closed={closeHandler}
 >
-	<Title id="dialog-title">Новая компания</Title>
+	<Title id="dialog-title">Новая организация</Title>
 	<Content id="dialog-content">
 		<div class="dialog-content">
 			{#if companyCreating}
