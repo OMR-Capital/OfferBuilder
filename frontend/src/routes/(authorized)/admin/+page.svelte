@@ -4,6 +4,7 @@
 	import Card, { Content } from '@smui/card';
 	import UsersPanel from '../../../lib/components/admin/UsersPanel.svelte';
 	import CompaniesPanel from '$lib/components/admin/CompaniesPanel.svelte';
+	import WastesPanel from '$lib/components/admin/WastesPanel.svelte';
 
 	export let data;
 </script>
@@ -14,6 +15,7 @@
             <div class="panels-container">
                 <UsersPanel token={data.token} />
                 <CompaniesPanel token={data.token} />
+                <WastesPanel token={data.token} />
             </div>
         </Content>
     </Card>
