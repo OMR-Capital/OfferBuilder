@@ -5,6 +5,7 @@
 	import UsersPanel from '../../../lib/components/admin/UsersPanel.svelte';
 	import CompaniesPanel from '$lib/components/admin/CompaniesPanel.svelte';
 	import WastesPanel from '$lib/components/admin/WastesPanel.svelte';
+	import WorksPanel from '$lib/components/admin/WorksPanel.svelte';
 
 	export let data;
 </script>
@@ -16,6 +17,7 @@
                 <UsersPanel token={data.token} />
                 <CompaniesPanel token={data.token} />
                 <WastesPanel token={data.token} />
+                <WorksPanel token={data.token} />
             </div>
         </Content>
     </Card>
