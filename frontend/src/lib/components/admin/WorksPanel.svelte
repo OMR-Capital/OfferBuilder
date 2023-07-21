@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { WorksAPI } from '$lib/backend/api/works';
 	import type { Work } from '$lib/backend/models/works';
-	import CircularLoader from '$lib/components/CircularLoader.svelte';
-	import IconButton from '$lib/components/IconButton.svelte';
-	import Snackbar from '$lib/components/Snackbar.svelte';
+	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
+	import IconButton from '$lib/components/common/IconButton.svelte';
+	import Snackbar from '$lib/components/common/Snackbar.svelte';
 	import Button, { Icon } from '@smui/button';
 	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';

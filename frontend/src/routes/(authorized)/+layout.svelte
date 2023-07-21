@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { UsersAPI } from '$lib/backend/api/users';
-	import CircularLoader from '$lib/components/CircularLoader.svelte';
+	import PageWithNavbar from '$lib/components/PageWithNavbar.svelte';
+	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 	import { user } from '$lib/stores';
-	import { onMount } from 'svelte';
-	import PageWithNavbar from './PageWithNavbar.svelte';
 	import { redirect } from '@sveltejs/kit';
+	import { onMount } from 'svelte';
 
 	export let data;
 
@@ -24,7 +24,7 @@
 
 		const result = await usersApi.getMyUser();
 		if (!result.ok) {
-            redirect(307, '/auth');
+			redirect(307, '/auth');
 		} else {
 			$user = result.value;
 			return result.value;

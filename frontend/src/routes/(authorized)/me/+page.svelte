@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { UsersAPI } from '$lib/backend/api/users';
 	import type { User } from '$lib/backend/models/users';
-	import CircularLoader from '$lib/components/CircularLoader.svelte';
-	import IconButton from '$lib/components/IconButton.svelte';
+	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
+	import IconButton from '$lib/components/common/IconButton.svelte';
 	import { user } from '$lib/stores';
 	import Button from '@smui/button';
 	import Card, { Content } from '@smui/card';

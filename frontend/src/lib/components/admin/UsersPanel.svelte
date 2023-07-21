@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { UsersAPI } from '$lib/backend/api/users';
 	import type { User } from '$lib/backend/models/users';
-	import CircularLoader from '$lib/components/CircularLoader.svelte';
-	import IconButton from '$lib/components/IconButton.svelte';
-	import Snackbar from '$lib/components/Snackbar.svelte';
+	import UserCreateDialog from '$lib/components/admin/UserCreateDialog.svelte';
+	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
+	import IconButton from '$lib/components/common/IconButton.svelte';
+	import Snackbar from '$lib/components/common/Snackbar.svelte';
 	import { userRoleName } from '$lib/texts';
 	import Button, { Icon } from '@smui/button';
 	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
-	import UserCreateDialog from '$lib/components/admin/UserCreateDialog.svelte';
 
 	export let token: string;
 

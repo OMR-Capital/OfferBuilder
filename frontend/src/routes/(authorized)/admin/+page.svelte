@@ -2,7 +2,7 @@
 	import { UserRole } from '$lib/backend/models/users';
 	import { user } from '$lib/stores';
 	import Card, { Content } from '@smui/card';
-	import UsersPanel from '../../../lib/components/admin/UsersPanel.svelte';
+	import UsersPanel from '$lib/components/admin/UsersPanel.svelte';
 	import CompaniesPanel from '$lib/components/admin/CompaniesPanel.svelte';
 	import WastesPanel from '$lib/components/admin/WastesPanel.svelte';
 	import WorksPanel from '$lib/components/admin/WorksPanel.svelte';

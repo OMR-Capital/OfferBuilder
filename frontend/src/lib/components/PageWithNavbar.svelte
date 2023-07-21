@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { UserRole } from '$lib/backend/models/users';
+	import IconButton from '$lib/components/common/IconButton.svelte';
 	import { user } from '$lib/stores';
-	import TopAppBar, { Row, Section, Title, AutoAdjust } from '@smui/top-app-bar';
 	import Button, { Label } from '@smui/button';
-	import IconButton from '$lib/components/IconButton.svelte';
+	import TopAppBar, { AutoAdjust, Row, Section } from '@smui/top-app-bar';
 
 	let topAppBar: TopAppBar;
 </script>
@@ -19,7 +19,7 @@
 				<Button href="/generator">
 					<Label>Генератор</Label>
 				</Button>
-            {/if}
+			{/if}
 			{#if $page.route.id != '/(authorized)/me'}
 				<Button href="/me">
 					<Label>Мой профиль</Label>

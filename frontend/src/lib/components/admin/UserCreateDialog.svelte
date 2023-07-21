@@ -9,7 +9,7 @@
 	import Radio from '@smui/radio';
 	import HelperText from '@smui/select/helper-text';
 	import Textfield from '@smui/textfield';
-	import CircularLoader from '$lib/components/CircularLoader.svelte';
+	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 
 	export let token: string;
 	export let open: boolean;

@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { CompaniesAPI } from '$lib/backend/api/companies';
 	import type { Company } from '$lib/backend/models/companies';
-	import CircularLoader from '$lib/components/CircularLoader.svelte';
-	import IconButton from '$lib/components/IconButton.svelte';
-	import Snackbar from '$lib/components/Snackbar.svelte';
+	import CompanyCreateDialog from '$lib/components/admin/CompanyCreateDialog.svelte';
+	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
+	import IconButton from '$lib/components/common/IconButton.svelte';
+	import Snackbar from '$lib/components/common/Snackbar.svelte';
 	import Button, { Icon } from '@smui/button';
 	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
-	import CompanyCreateDialog from '$lib/components/admin/CompanyCreateDialog.svelte';
 
 	export let token: string;
 
