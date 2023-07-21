@@ -11,16 +11,16 @@
 </script>
 
 {#if $user.role == UserRole.Admin}
-    <Card>
+    <div class="panels-container">
+        <UsersPanel token={data.token} />
+        <CompaniesPanel token={data.token} />
+        <WastesPanel token={data.token} />
+        <WorksPanel token={data.token} />
+    </div>
+    <!-- <Card>
         <Content>
-            <div class="panels-container">
-                <UsersPanel token={data.token} />
-                <CompaniesPanel token={data.token} />
-                <WastesPanel token={data.token} />
-                <WorksPanel token={data.token} />
-            </div>
         </Content>
-    </Card>
+    </Card> -->
 {:else}
     <Card>
         <Content>Доступ запрещен</Content>

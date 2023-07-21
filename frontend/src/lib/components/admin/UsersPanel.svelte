@@ -10,6 +10,7 @@
 	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
+	import Panel from './Panel.svelte';
 
 	export let token: string;
 
@@ -54,66 +55,63 @@
 	onMount(updateUsers);
 </script>
 
-<div>
-	<h5>Пользователи</h5>
-	<div class="table-container">
-		<DataTable table$aria-label="Список пользователей" style="width: 100%;">
-			<Head>
-				<Row>
-					<Cell>ID</Cell>
-					<Cell>Имя</Cell>
-					<Cell>Логин</Cell>
-					<Cell>Роль</Cell>
-					<Cell />
-				</Row>
-			</Head>
-			<Body>
-				{#each users as user}
+<Panel title="Пользователи">
+	<div>
+		<div class="table-container">
+			<DataTable table$aria-label="Список пользователей" style="width: 100%;">
+				<Head>
 					<Row>
-						<Cell>{user.uid}</Cell>
-						<Cell style="width: 100%">{user.name}</Cell>
-						<Cell>{user.login}</Cell>
-						<Cell>{userRoleName(user.role)}</Cell>
-						<Cell>
-							{#if userDeleting[user.uid]}
-								<CircularLoader size="small" />
-							{:else}
-								<IconButton onClick={() => deleteUser(user.uid)} icon="delete" />
-							{/if}
-						</Cell>
+						<Cell>ID</Cell>
+						<Cell>Имя</Cell>
+						<Cell>Логин</Cell>
+						<Cell>Роль</Cell>
+						<Cell />
 					</Row>
-				{/each}
-			</Body>
-			<LinearProgress
-				indeterminate
-				bind:closed={usersLoaded}
-				aria-label="Загрузка..."
-				slot="progress"
-			/>
-		</DataTable>
-	</div>
-	<div class="add-user-container">
-		<Button
-			variant="outlined"
-			on:click={() => {
-				createDialogOpen = true;
-			}}
-		>
-			<Icon class="material-icons">add_circle_outlined</Icon>
-			Добавить пользователя
-		</Button>
-	</div>
+				</Head>
+				<Body>
+					{#each users as user}
+						<Row>
+							<Cell>{user.uid}</Cell>
+							<Cell style="width: 100%">{user.name}</Cell>
+							<Cell>{user.login}</Cell>
+							<Cell>{userRoleName(user.role)}</Cell>
+							<Cell>
+								{#if userDeleting[user.uid]}
+									<CircularLoader size="small" />
+								{:else}
+									<IconButton onClick={() => deleteUser(user.uid)} icon="delete" />
+								{/if}
+							</Cell>
+						</Row>
+					{/each}
+				</Body>
+				<LinearProgress
+					indeterminate
+					bind:closed={usersLoaded}
+					aria-label="Загрузка..."
+					slot="progress"
+				/>
+			</DataTable>
+		</div>
+		<div class="add-user-container">
+			<Button
+				variant="outlined"
+				on:click={() => {
+					createDialogOpen = true;
+				}}
+			>
+				<Icon class="material-icons">add_circle_outlined</Icon>
+				Добавить пользователя
+			</Button>
+		</div>
 
-	<Snackbar bind:this={snackbar} />
+		<Snackbar bind:this={snackbar} />
 
-	<UserCreateDialog {token} bind:open={createDialogOpen} onCreate={updateUsers} />
-</div>
+		<UserCreateDialog {token} bind:open={createDialogOpen} onCreate={updateUsers} />
+	</div>
+</Panel>
 
 <style>
-	.table-container {
-		padding-top: 2rem;
-	}
-
 	.add-user-container {
 		padding-top: 2rem;
 	}
