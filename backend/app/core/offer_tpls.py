@@ -1,5 +1,6 @@
 """Offer templates utilities."""
 
+import base64
 from io import BytesIO
 from typing import Any, Optional
 
@@ -71,6 +72,23 @@ def delete_offer_tpl_file(
         offer_tpl_id (str): Offer template id
     """
     drive.delete(offer_tpl_id)
+
+
+def decode_offer_tpl_file(
+    offer_tpl_data: str,
+) -> Optional[bytes]:
+    """Decode offer template file data from base64.
+
+    Args:
+        offer_tpl_data (str): Offer template file data
+
+    Returns:
+        Optional[bytes]: Decoded offer template file data if found
+    """
+    try:
+        return base64.b64decode(offer_tpl_data)
+    except Exception:
+        return None
 
 
 def validate_offer_tpl_file(

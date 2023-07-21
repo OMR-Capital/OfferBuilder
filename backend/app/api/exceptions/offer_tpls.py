@@ -24,6 +24,15 @@ class OfferTemplateUploadFailed(HTTPException):
         self.detail = 'Offer template upload failed'
 
 
+class BadOfferTemplateFile(HTTPException):
+    """Raised when the offer template file is bad."""
+
+    def __init__(self) -> None:
+        """Initialize the exception."""
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.detail = 'Bad offer template file'
+
+
 class IncorrectOfferTemplateFile(HTTPException):
     """Raised when the offer template file is not valid docx."""
 

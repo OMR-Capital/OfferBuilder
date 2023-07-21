@@ -1,6 +1,5 @@
 """Offers templates API."""
 
-import base64
 from io import BytesIO
 from typing import Annotated
 
@@ -11,6 +10,7 @@ from fastapi.responses import StreamingResponse
 
 from app.api.dependencies import get_admin, get_current_user
 from app.api.exceptions.offer_tpls import (
+    BadOfferTemplateFile,
     IncorrectOfferTemplateFile,
     OfferTemplateNotFound,
     OfferTemplateUploadFailed,
@@ -24,6 +24,7 @@ from app.api.schemes.offer_tpls import (
 )
 from app.core.models import generate_id
 from app.core.offer_tpls import (
+    decode_offer_tpl_file,
     delete_offer_tpl_file,
     fill_offer_tpl,
     get_offer_tpl_file,
@@ -141,12 +142,16 @@ async def update_offer_tpl_file(
         drive (_Drive): Offer templates drive.
 
     Raises:
+        BadOfferTemplateFile: Raised when the offer template file is bad.
         IncorrectOfferTemplateFile: \
             Raised when the offer template file is incorrect.
         OfferTemplateUploadFailed: \
             Raised when the offer template upload failed.
     """
-    offer_tpl_data = base64.b64decode(offer_tpl_file)
+    offer_tpl_data = decode_offer_tpl_file(offer_tpl_file)
+    if not offer_tpl_data:
+        raise BadOfferTemplateFile()
+
     if not validate_offer_tpl_file(offer_tpl_data):
         raise IncorrectOfferTemplateFile()
 
@@ -161,7 +166,7 @@ async def create_offer_tpl(
     offer_tpl_data: OfferTemplateCreate,
     drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
     admin: Annotated[User, Depends(get_admin)],
-) -> OfferTemplate:
+) -> OfferTemplateResponse:
     """Create offer template.
 
     Args:
@@ -173,18 +178,22 @@ async def create_offer_tpl(
         OfferTemplate: Created offer template.
     """
     offer_tpl_id = generate_id()
-    db_offer_tpl = OfferTemplateInDB(
-        offer_tpl_id=offer_tpl_id,
-        name=offer_tpl_data.name,
-    )
-    await db_offer_tpl.save()
 
     await update_offer_tpl_file(
         offer_tpl_id,
         offer_tpl_data.offer_tpl_file,
         drive,
     )
-    return OfferTemplate(**db_offer_tpl.dict())
+
+    db_offer_tpl = OfferTemplateInDB(
+        offer_tpl_id=offer_tpl_id,
+        name=offer_tpl_data.name,
+    )
+    await db_offer_tpl.save()
+
+    return OfferTemplateResponse(
+        offer_tpl=OfferTemplate(**db_offer_tpl.dict()),
+    )
 
 
 @router.put('/{offer_tpl_id}')
@@ -193,7 +202,7 @@ async def update_offer_tpl(
     offer_tpl_data: OfferTemplateUpdate,
     drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
     admin: Annotated[User, Depends(get_admin)],
-) -> OfferTemplate:
+) -> OfferTemplateResponse:
     """Update offer template.
 
     Args:
@@ -222,7 +231,9 @@ async def update_offer_tpl(
             drive,
         )
 
-    return OfferTemplate(**db_offer_tpl.dict())
+    return OfferTemplateResponse(
+        offer_tpl=OfferTemplate(**db_offer_tpl.dict()),
+    )
 
 
 @router.delete('/{offer_tpl_id}')
