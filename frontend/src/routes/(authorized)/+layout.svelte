@@ -4,6 +4,7 @@
 	import { user } from '$lib/stores';
 	import { onMount } from 'svelte';
 	import PageWithNavbar from './PageWithNavbar.svelte';
+	import { redirect } from '@sveltejs/kit';
 
 	export let data;
 
@@ -23,7 +24,7 @@
 
 		const result = await usersApi.getMyUser();
 		if (!result.ok) {
-			throw result.error;
+            redirect(307, '/auth');
 		} else {
 			$user = result.value;
 			return result.value;
