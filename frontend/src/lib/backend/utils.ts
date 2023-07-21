@@ -69,3 +69,35 @@ export async function fetchApi(
 	const result = (await response.json()) as object;
 	return { ok: true, value: result };
 }
+
+/**
+ * Fetch file from backend API with authorization token.
+ */
+export async function fetchFile(
+	path: string,
+	method: string,
+	token: string,
+	json?: object,
+	headers: object = {}
+): Promise<Result<Blob>> {
+	const url = BACKEND_URL + path;
+
+	const headers_ = {
+		Authorization: 'Bearer ' + token,
+		Accept: 'application/json',
+		'Content-Type': 'application/json',
+		...headers
+	};
+
+	const response = await fetch(url, {
+		method,
+		headers: headers_,
+		body: json ? JSON.stringify(json) : undefined
+	});
+
+	if (response.status != 200) {
+		return { ok: false, error: new HTTPError(response.statusText, response.status) };
+	}
+	const result = (await response.blob()) as Blob;
+	return { ok: true, value: result };
+}
