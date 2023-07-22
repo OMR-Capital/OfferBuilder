@@ -9,7 +9,7 @@
 	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
-	import Panel from './Panel.svelte';
+	import Panel from '../common/Panel.svelte';
 
 	export let token: string;
 

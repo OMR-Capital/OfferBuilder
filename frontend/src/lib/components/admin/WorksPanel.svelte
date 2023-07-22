@@ -9,7 +9,7 @@
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
 	import WorkCreateDialog from './WorkCreateDialog.svelte';
-	import Panel from './Panel.svelte';
+	import Panel from '../common/Panel.svelte';
 
 	export let token: string;
 
