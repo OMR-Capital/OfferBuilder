@@ -1,18 +1,23 @@
 <script lang="ts">
 	import { auth } from '$lib/backend/utils';
-	import { setCookie } from 'typescript-cookie';
+	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 	import Button, { Label } from '@smui/button';
 	import Card, { Content } from '@smui/card';
 	import Textfield from '@smui/textfield';
 	import HelperText from '@smui/textfield/helper-text';
+	import { setCookie } from 'typescript-cookie';
 
 	export let data;
 
 	let username = '';
 	let password = '';
 	let authFailed = false;
+	let authorizing = false;
 
 	async function login() {
+		if (!username || !password) return;
+
+		authorizing = true;
 		try {
 			const { token } = await auth(username, password);
 			if (token) {
@@ -26,6 +31,7 @@
 		} catch (err) {
 			authFailed = true;
 		}
+		authorizing = false;
 	}
 </script>
 
@@ -60,9 +66,13 @@
 					</Textfield>
 				</div>
 				<div class="auth-content__item">
-					<Button variant="outlined" on:click={login} style="width: 100%;">
-						<Label>Войти</Label>
-					</Button>
+					{#if authorizing}
+                        <CircularLoader />
+					{:else}
+						<Button variant="outlined" on:click={login} style="width: 100%;">
+							<Label>Войти</Label>
+						</Button>
+					{/if}
 				</div>
 			</div>
 		</Content>

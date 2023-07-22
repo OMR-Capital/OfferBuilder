@@ -57,9 +57,7 @@
 	<Content id="dialog-content">
 		<div class="dialog-content">
 			{#if wasteCreating}
-				<div class="loader-container">
 					<CircularLoader size="large" />
-				</div>
 			{:else if !wasteCreated}
 				<div class="name-container">
 					<Label style="margin-bottom: 1rem;"><strong>Наименование</strong></Label>
@@ -152,12 +150,5 @@
 		flex-direction: row;
 		justify-content: flex-end;
 		gap: 1rem;
-	}
-
-	.loader-container {
-		display: flex;
-		flex-direction: row;
-		justify-content: center;
-		align-items: center;
 	}
 </style>

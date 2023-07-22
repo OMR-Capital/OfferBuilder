@@ -66,9 +66,7 @@
 	<Content id="dialog-content">
 		<div class="dialog-content">
 			{#if userCreating}
-                <div class="loader-container">
                     <CircularLoader size="large"/>
-                </div>
 			{:else if !userCreated}
 				<div class="name-container">
 					<Label style="margin-bottom: 1rem;"><strong>Имя</strong></Label>
@@ -166,11 +164,4 @@
 		justify-content: flex-end;
 		gap: 1rem;
 	}
-
-    .loader-container {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-    }
 </style>

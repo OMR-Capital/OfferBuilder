@@ -16,4 +16,14 @@
     }
 </script>
 
-<CircularProgress {...$$restProps} style={getStyle()} indeterminate />
+<div class="circular-loader">
+    <CircularProgress {...$$restProps} style={getStyle()} indeterminate />
+</div>
+
+<style>
+    .circular-loader {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>

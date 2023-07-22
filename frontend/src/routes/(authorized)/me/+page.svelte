@@ -30,7 +30,7 @@
 			nameError = result.error.message;
 		} else {
 			$user = result.value;
-            name = $user.name;
+			name = $user.name;
 			nameUpdated = true;
 		}
 		nameUpdating = false;
@@ -51,24 +51,24 @@
 			loginError = result.error.message;
 		} else {
 			$user = result.value;
-            login = $user.login;
+			login = $user.login;
 			loginUpdated = true;
 		}
 		loginUpdating = false;
 	}
 
 	let password: string | null = null;
-    let passwordUpdating = false;
+	let passwordUpdating = false;
 
 	async function regenPassword() {
-        passwordUpdating = true;
+		passwordUpdating = true;
 		const result = await userApi.regenMyPassword();
 		if (!result.ok) {
 			loginError = result.error.message;
 		} else {
 			password = result.value;
 		}
-        passwordUpdating = false;
+		passwordUpdating = false;
 	}
 
 	async function updateUser(): Promise<User> {
@@ -77,8 +77,8 @@
 			throw result.error;
 		} else {
 			$user = result.value;
-            name = $user.name;
-            login = $user.login;
+			name = $user.name;
+			login = $user.login;
 			return result.value;
 		}
 	}
@@ -149,8 +149,8 @@
 						{#if password}
 							<p>Ваш новый пароль: <strong>{password}</strong></p>
 						{:else if passwordUpdating}
-                            <CircularLoader size="small" />
-                        {:else}
+                            <CircularLoader />
+						{:else}
 							<Wrapper>
 								<Button variant="outlined" style="width: 100%" on:click={regenPassword}>
 									Обновить пароль
