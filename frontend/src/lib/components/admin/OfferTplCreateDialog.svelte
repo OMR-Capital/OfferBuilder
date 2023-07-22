@@ -4,10 +4,11 @@
 	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 	import Button from '@smui/button';
 	import { Label } from '@smui/common';
-	import Dialog, { Content, Title } from '@smui/dialog';
 	import HelperText from '@smui/select/helper-text';
 	import Textfield from '@smui/textfield';
 	import FileLoader from '../common/FileLoader.svelte';
+	import Dialog from '../common/dialog/Dialog.svelte';
+	import DialogBlock from '../common/dialog/DialogBlock.svelte';
 
 	export let token: string;
 	export let open: boolean;
@@ -48,84 +49,59 @@
 	}
 </script>
 
-<Dialog
-	bind:open
-	selection
-	aria-labelledby="dialog-title"
-	aria-describedby="dialog-content"
-	on:SMUIDialog:closed={closeHandler}
->
-	<Title id="dialog-title">Новый шаблон</Title>
-	<Content id="dialog-content">
-		<div class="dialog-content">
-			{#if offerTplCreating}
-                <CircularLoader size="large" />
-			{:else if !offerTplCreated}
-				<div class="name-container">
-					<Label style="margin-bottom: 1rem;"><strong>Название</strong></Label>
-					<Textfield
-						variant="outlined"
-						bind:value={name}
-						label="Наименование"
-						style="width: 100%"
-						invalid={!name}
-					>
-						<HelperText persistent slot="helper">
-							{#if !name}
-								Название не может быть пустым
-							{/if}
-						</HelperText>
-					</Textfield>
-				</div>
-				<div class="file-container">
-					<FileLoader bind:base64Data={offer_tpl_file} {allowedExtensions} />
-				</div>
-			{:else if createdOfferTpl}
-				<p>Шаблон <strong>{createdOfferTpl.name}</strong> добавлен.</p>
-			{:else}
-				<p>Ошибка: {createError}</p>
-			{/if}
-			<div class="dialog-footer">
-				{#if !offerTplCreated}
-					<Button
-						on:click={() => {
-							open = false;
-						}}
-					>
-						<Label>Отмена</Label>
-					</Button>
-					<Button variant="raised" on:click={createOfferTpl}>
-						<Label>Создать</Label>
-					</Button>
-				{:else}
-					<Button
-						variant="raised"
-						on:click={() => {
-							open = false;
-						}}
-					>
-						<Label>Закрыть</Label>
-					</Button>
-				{/if}
-			</div>
-		</div>
-	</Content>
+<Dialog bind:open title="Новый шаблон" {closeHandler}>
+	{#if offerTplCreating}
+		<CircularLoader size="large" />
+	{:else if !offerTplCreated}
+		<DialogBlock title="Наименование">
+			<Textfield
+				variant="outlined"
+				bind:value={name}
+				label="Наименование"
+				style="width: 100%"
+				invalid={!name}
+			>
+				<HelperText persistent slot="helper">
+					{#if !name}
+						Название не может быть пустым
+					{/if}
+				</HelperText>
+			</Textfield>
+		</DialogBlock>
+		<DialogBlock title="Файл шаблона (doc, docx)">
+			<FileLoader bind:base64Data={offer_tpl_file} {allowedExtensions} />
+		</DialogBlock>
+	{:else if createdOfferTpl}
+		<p>Шаблон <strong>{createdOfferTpl.name}</strong> добавлен.</p>
+	{:else}
+		<p>Ошибка: {createError}</p>
+	{/if}
+	<div class="dialog-footer">
+		{#if !offerTplCreated}
+			<Button
+				on:click={() => {
+					open = false;
+				}}
+			>
+				<Label>Отмена</Label>
+			</Button>
+			<Button variant="raised" on:click={createOfferTpl}>
+				<Label>Создать</Label>
+			</Button>
+		{:else}
+			<Button
+				variant="raised"
+				on:click={() => {
+					open = false;
+				}}
+			>
+				<Label>Закрыть</Label>
+			</Button>
+		{/if}
+	</div>
 </Dialog>
 
 <style>
-	.dialog-content {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		padding: 2rem;
-		width: min(20rem, 100vw);
-	}
-
-	.name-container {
-		display: flex;
-		flex-direction: column;
-	}
-
 	.dialog-footer {
 		display: flex;
 		flex-direction: row;
