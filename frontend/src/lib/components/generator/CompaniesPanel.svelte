@@ -13,7 +13,7 @@
 
 	const companiesApi = new CompaniesAPI(token);
 
-	export let selectedCompanyName: string | undefined = undefined;
+	export let selectedCompanyName: string | null = null;
 	let companies: Company[] = [];
 	let companiesLoading = false;
 
