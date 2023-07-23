@@ -55,62 +55,51 @@
 </script>
 
 <Panel title="Организации">
-
-
-    <div>
-        <div class="table-container">
-            <DataTable table$aria-label="Список организаций" style="width: 100%;">
-                <Head>
-                    <Row>
-                        <Cell>ID</Cell>
-                        <Cell>Название</Cell>
-                        <Cell />
-                    </Row>
-                </Head>
-                <Body>
-                    {#each companies as company}
-                        <Row>
-                            <Cell>{company.company_id}</Cell>
-                            <Cell style="width: 100%">{company.name}</Cell>
-                            <Cell>
-                                {#if companyDeleting[company.company_id]}
-                                    <CircularLoader size="small" />
-                                {:else}
-                                    <IconButton onClick={() => deleteCompany(company.company_id)} icon="delete" />
-                                {/if}
-                            </Cell>
-                        </Row>
-                    {/each}
-                </Body>
-                <LinearProgress
-                    indeterminate
-                    bind:closed={companiesLoaded}
-                    aria-label="Загрузка..."
-                    slot="progress"
-                />
-            </DataTable>
-        </div>
-        <div class="add-company-container">
-            <Button
-                variant="outlined"
-                on:click={() => {
-                    createDialogOpen = true;
-                }}
-            >
-                <Icon class="material-icons">add_circle_outlined</Icon>
-                Добавить организацию
-            </Button>
-        </div>
-
-        <Snackbar bind:this={snackbar} />
-
-        <CompanyCreateDialog {token} bind:open={createDialogOpen} onCreate={updateCompanies} />
-    </div>
+	<div class="table-container">
+		<DataTable table$aria-label="Список организаций" style="width: 100%;">
+			<Head>
+				<Row>
+					<Cell>ID</Cell>
+					<Cell>Название</Cell>
+					<Cell />
+				</Row>
+			</Head>
+			<Body>
+				{#each companies as company}
+					<Row>
+						<Cell>{company.company_id}</Cell>
+						<Cell style="width: 100%">{company.name}</Cell>
+						<Cell>
+							{#if companyDeleting[company.company_id]}
+								<CircularLoader size="small" />
+							{:else}
+								<IconButton onClick={() => deleteCompany(company.company_id)} icon="delete" />
+							{/if}
+						</Cell>
+					</Row>
+				{/each}
+			</Body>
+			<LinearProgress
+				indeterminate
+				bind:closed={companiesLoaded}
+				aria-label="Загрузка..."
+				slot="progress"
+			/>
+		</DataTable>
+	</div>
+	<div class="add-company-container">
+		<Button
+			variant="outlined"
+			on:click={() => {
+				createDialogOpen = true;
+			}}
+		>
+			<Icon class="material-icons">add_circle_outlined</Icon>
+			Добавить организацию
+		</Button>
+	</div>
 </Panel>
 
+<Snackbar bind:this={snackbar} />
 
-<style>
-	.add-company-container {
-		padding-top: 2rem;
-	}
-</style>
+<CompanyCreateDialog {token} bind:open={createDialogOpen} onCreate={updateCompanies} />

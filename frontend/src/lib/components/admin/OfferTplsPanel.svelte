@@ -79,74 +79,62 @@
 </script>
 
 <Panel title="Шаблоны договоров">
-	<div>
-		<div class="table-container">
-			<DataTable table$aria-label="Список шаблонов" style="width: 100%;">
-				<Head>
+	<div class="table-container">
+		<DataTable table$aria-label="Список шаблонов" style="width: 100%;">
+			<Head>
+				<Row>
+					<Cell>ID</Cell>
+					<Cell>Название</Cell>
+					<Cell />
+					<Cell />
+				</Row>
+			</Head>
+			<Body>
+				{#each offerTpls as offerTpl}
 					<Row>
-						<Cell>ID</Cell>
-						<Cell>Название</Cell>
-						<Cell />
-						<Cell />
+						<Cell>{offerTpl.offer_tpl_id}</Cell>
+						<Cell style="width: 100%">{offerTpl.name}</Cell>
+						<Cell>
+							{#if offerTplDeleting[offerTpl.offer_tpl_id]}
+								<CircularLoader size="small" />
+							{:else}
+								<IconButton onClick={() => deleteOfferTpl(offerTpl.offer_tpl_id)} icon="delete" />
+							{/if}
+						</Cell>
+						<Cell>
+							{#if fileDownloading[offerTpl.offer_tpl_id]}
+								<CircularLoader size="small" />
+							{:else}
+								<IconButton
+									onClick={() => downloadOfferTpl(offerTpl.offer_tpl_id)}
+									icon="download"
+								/>
+							{/if}
+						</Cell>
 					</Row>
-				</Head>
-				<Body>
-					{#each offerTpls as offerTpl}
-						<Row>
-							<Cell>{offerTpl.offer_tpl_id}</Cell>
-							<Cell style="width: 100%">{offerTpl.name}</Cell>
-							<Cell>
-								{#if offerTplDeleting[offerTpl.offer_tpl_id]}
-									<CircularLoader size="small" />
-								{:else}
-									<IconButton onClick={() => deleteOfferTpl(offerTpl.offer_tpl_id)} icon="delete" />
-								{/if}
-							</Cell>
-							<Cell>
-								{#if fileDownloading[offerTpl.offer_tpl_id]}
-									<CircularLoader size="small" />
-								{:else}
-									<IconButton
-										onClick={() => downloadOfferTpl(offerTpl.offer_tpl_id)}
-										icon="download"
-									/>
-								{/if}
-							</Cell>
-						</Row>
-					{/each}
-				</Body>
-				<LinearProgress
-					indeterminate
-					bind:closed={offerTplsLoaded}
-					aria-label="Загрузка..."
-					slot="progress"
-				/>
-			</DataTable>
-		</div>
-		<div class="add-offerTpl-container">
-			<Button
-				variant="outlined"
-				on:click={() => {
-					createDialogOpen = true;
-				}}
-			>
-				<Icon class="material-icons">add_circle_outlined</Icon>
-				Добавить шаблон
-			</Button>
-		</div>
-
-		<Snackbar bind:this={snackbar} />
-
-		<OfferTplCreateDialog {token} bind:open={createDialogOpen} onCreate={updateOfferTpls} />
+				{/each}
+			</Body>
+			<LinearProgress
+				indeterminate
+				bind:closed={offerTplsLoaded}
+				aria-label="Загрузка..."
+				slot="progress"
+			/>
+		</DataTable>
+	</div>
+	<div class="add-offerTpl-container">
+		<Button
+			variant="outlined"
+			on:click={() => {
+				createDialogOpen = true;
+			}}
+		>
+			<Icon class="material-icons">add_circle_outlined</Icon>
+			Добавить шаблон
+		</Button>
 	</div>
 </Panel>
 
-<style>
-	.table-container {
-		padding-top: 2rem;
-	}
+<Snackbar bind:this={snackbar} />
 
-	.add-offerTpl-container {
-		padding-top: 2rem;
-	}
-</style>
+<OfferTplCreateDialog {token} bind:open={createDialogOpen} onCreate={updateOfferTpls} />

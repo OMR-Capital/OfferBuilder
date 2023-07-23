@@ -55,65 +55,53 @@
 </script>
 
 <Panel title="Отходы">
-	<div>
-		<div class="table-container">
-			<DataTable table$aria-label="Список отходов" style="width: 100%;">
-				<Head>
+	<div class="table-container">
+		<DataTable table$aria-label="Список отходов" style="width: 100%;">
+			<Head>
+				<Row>
+					<Cell>ID</Cell>
+					<Cell>Наименование</Cell>
+					<Cell>Код ФККО</Cell>
+					<Cell />
+				</Row>
+			</Head>
+			<Body>
+				{#each wastes as waste}
 					<Row>
-						<Cell>ID</Cell>
-						<Cell>Наименование</Cell>
-						<Cell>Код ФККО</Cell>
-						<Cell />
+						<Cell>{waste.waste_id}</Cell>
+						<Cell style="width: 100%">{waste.name}</Cell>
+						<Cell>{waste.fkko_code}</Cell>
+						<Cell>
+							{#if wasteDeleting[waste.waste_id]}
+								<CircularLoader size="small" />
+							{:else}
+								<IconButton onClick={() => deleteWaste(waste.waste_id)} icon="delete" />
+							{/if}
+						</Cell>
 					</Row>
-				</Head>
-				<Body>
-					{#each wastes as waste}
-						<Row>
-							<Cell>{waste.waste_id}</Cell>
-							<Cell style="width: 100%">{waste.name}</Cell>
-							<Cell>{waste.fkko_code}</Cell>
-							<Cell>
-								{#if wasteDeleting[waste.waste_id]}
-									<CircularLoader size="small" />
-								{:else}
-									<IconButton onClick={() => deleteWaste(waste.waste_id)} icon="delete" />
-								{/if}
-							</Cell>
-						</Row>
-					{/each}
-				</Body>
-				<LinearProgress
-					indeterminate
-					bind:closed={wastesLoaded}
-					aria-label="Загрузка..."
-					slot="progress"
-				/>
-			</DataTable>
-		</div>
-		<div class="add-waste-container">
-			<Button
-				variant="outlined"
-				on:click={() => {
-					createDialogOpen = true;
-				}}
-			>
-				<Icon class="material-icons">add_circle_outlined</Icon>
-				Добавить отход
-			</Button>
-		</div>
-
-		<Snackbar bind:this={snackbar} />
-
-		<WasteCreateDialog {token} bind:open={createDialogOpen} onCreate={updateWastes} />
+				{/each}
+			</Body>
+			<LinearProgress
+				indeterminate
+				bind:closed={wastesLoaded}
+				aria-label="Загрузка..."
+				slot="progress"
+			/>
+		</DataTable>
+	</div>
+	<div class="add-waste-container">
+		<Button
+			variant="outlined"
+			on:click={() => {
+				createDialogOpen = true;
+			}}
+		>
+			<Icon class="material-icons">add_circle_outlined</Icon>
+			Добавить отход
+		</Button>
 	</div>
 </Panel>
 
-<style>
-	.table-container {
-		padding-top: 2rem;
-	}
+<Snackbar bind:this={snackbar} />
 
-	.add-waste-container {
-		padding-top: 2rem;
-	}
-</style>
+<WasteCreateDialog {token} bind:open={createDialogOpen} onCreate={updateWastes} />

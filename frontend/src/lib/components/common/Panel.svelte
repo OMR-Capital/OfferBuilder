@@ -1,24 +1,27 @@
 <script lang="ts">
-	import Card from '@smui/card';
-	import { Content } from '@smui/dialog';
+	import Card, { Content } from '@smui/card';
 
 	export let title: string;
 </script>
 
 <Card>
 	<Content>
-        <div class="content-container">
-            <h5>{title}</h5>
-            <slot />
-        </div>
+        <h5 class="panel-title">{title}</h5>
+		<div class="content-container">
+			<slot />
+		</div>
 	</Content>
 </Card>
 
 <style>
-    .content-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1rem;
+    .panel-title {
+        margin-bottom: 2rem;
     }
+
+	.content-container {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+		padding: 1rem;
+	}
 </style>
