@@ -56,16 +56,16 @@
 		});
 	}
 
-	async function downloadOfferTpl(offer_tpl_id: string) {
-		fileDownloading[offer_tpl_id] = true;
-		const result = await offerTplsApi.downloadOfferTpl(offer_tpl_id);
-		fileDownloading[offer_tpl_id] = false;
+	async function downloadOfferTpl(offerTpl: OfferTpl) {
+		fileDownloading[offerTpl.offer_tpl_id] = true;
+		const result = await offerTplsApi.downloadOfferTpl(offerTpl.offer_tpl_id);
+		fileDownloading[offerTpl.offer_tpl_id] = false;
 		if (result.ok) {
 			const blob = result.value;
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement('a');
 			a.href = url;
-			a.download = 'offer_tpl.docx';
+			a.download = offerTpl.name + '.docx';
 			document.body.appendChild(a);
 			a.click();
 			a.remove();
@@ -106,7 +106,7 @@
 								<CircularLoader size="small" />
 							{:else}
 								<IconButton
-									onClick={() => downloadOfferTpl(offerTpl.offer_tpl_id)}
+									onClick={() => downloadOfferTpl(offerTpl)}
 									icon="download"
 								/>
 							{/if}
