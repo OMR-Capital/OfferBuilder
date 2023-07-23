@@ -13,7 +13,7 @@
 
 	const companiesApi = new CompaniesAPI(token);
 
-	export let selectedCompany: Company | undefined = undefined;
+	export let selectedCompanyName: string | undefined = undefined;
 	let companies: Company[] = [];
 	let companiesLoading = false;
 
@@ -35,14 +35,15 @@
 	{#if companiesLoading}
 		<CircularLoader size="large" />
 	{:else}
-        <Autocomplete
-            label="Организация"
-            combobox
-            options={companies}
-            getOptionLabel={(option) => (option ? `${option.name}` : '')}
-            bind:value={selectedCompany}
-            textfield$style="width: 100%;"
-        />
+		<Autocomplete
+			label="Организация"
+			style="width: 100%;"
+			textfield$style="width: 100%;"
+			combobox
+			options={companies}
+			getOptionLabel={(option) => (option ? `${option.name}` : '')}
+			bind:value={selectedCompanyName}
+		/>
 	{/if}
 </Panel>
 
