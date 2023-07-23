@@ -28,6 +28,10 @@
 		companiesLoading = false;
 	}
 
+	function getCompanyLabel(company: Company | null) {
+		return company ? `${company.name}` : '';
+	}
+
 	onMount(updateCompanies);
 </script>
 
@@ -41,7 +45,7 @@
 			textfield$style="width: 100%;"
 			combobox
 			options={companies}
-			getOptionLabel={(option) => (option ? `${option.name}` : '')}
+			getOptionLabel={getCompanyLabel}
 			bind:value={selectedCompanyName}
 		/>
 	{/if}
