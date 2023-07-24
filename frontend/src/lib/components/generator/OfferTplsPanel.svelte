@@ -103,7 +103,7 @@
 	.offerTpl-selection-container {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: 2rem;
 	}
 
     .download-btn-container {
