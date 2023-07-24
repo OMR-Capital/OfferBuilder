@@ -286,7 +286,7 @@ async def build_offer_tpl(
         StreamingResponse: Filled offer template file.
     """
     context = offer_data.context
-    context['author'] = user.name
+    context['user'] = user
 
     db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
     if not db_offer_tpl:
