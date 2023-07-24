@@ -10,8 +10,8 @@
 	import { Label } from '@smui/common';
 	import { Text } from '@smui/list';
 	import Textfield from '@smui/textfield';
-	import type { GeneralRow } from './types';
-	import { Unit } from './types';
+	import type { GeneralRow } from '../types';
+	import { Unit } from '../types';
 
 	export let availableWastes: Waste[];
 	export let availableWorks: Work[];

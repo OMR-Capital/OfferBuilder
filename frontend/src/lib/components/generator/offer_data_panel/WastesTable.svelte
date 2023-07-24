@@ -7,7 +7,7 @@
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
 	import AddWasteRowDialog from './AddWasteRowDialog.svelte';
-	import type { WasteRow } from './types';
+	import type { WasteRow } from '../types';
 
 	export let token: string;
 

@@ -4,7 +4,7 @@
 	import Panel from '../../common/Panel.svelte';
 	import GeneralTable from './GeneralTable.svelte';
 	import WastesTable from './WastesTable.svelte';
-	import { OfferType, type GeneralRow, type WasteRow } from './types';
+	import { OfferType, type GeneralRow, type WasteRow } from '../types';
 
 	export let token: string;
 	export let offerData: WasteRow[] | GeneralRow[] = [];
