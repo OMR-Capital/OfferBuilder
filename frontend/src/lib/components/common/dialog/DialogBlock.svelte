@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { Label } from '@smui/common';
 
-	export let title: string;
+	export let title: string | null = null;
 </script>
 
 <div class="dialog-block">
-	<div class="block-title">
-		<Label>{title}</Label>
-	</div>
+	{#if title}
+		<div class="block-title">
+			<Label>{title}</Label>
+		</div>
+	{/if}
 	<slot />
 </div>
 
