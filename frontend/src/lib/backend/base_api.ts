@@ -1,5 +1,6 @@
 import type { Result } from './utils';
 import { fetchApi, fetchFile } from './utils';
+import { goto } from '$app/navigation';
 
 export class BaseAPI {
 	private token: string;
@@ -14,7 +15,11 @@ export class BaseAPI {
 		json?: object,
 		headers: object = {}
 	): Promise<Result<object>> {
-		return await fetchApi(path, method, this.token, json, headers);
+		const result = await fetchApi(path, method, this.token, json, headers);
+		if (!result.ok && result.error.status == 401) {
+			goto('/auth');
+		}
+		return result;
 	}
 
 	async fetchFile(
@@ -23,6 +28,10 @@ export class BaseAPI {
 		json?: object,
 		headers: object = {}
 	): Promise<Result<Blob>> {
-		return await fetchFile(path, method, this.token, json, headers);
+		const result = await fetchFile(path, method, this.token, json, headers);
+		if (!result.ok && result.error.status == 401) {
+			goto('/auth');
+		}
+		return result;
 	}
 }
