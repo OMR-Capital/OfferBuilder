@@ -27,6 +27,6 @@
 		flex-direction: column;
 		gap: 2rem;
 		padding: 2rem;
-		width: min(20rem, 100vw);
+		width: min(30rem, 100vw);
 	}
 </style>
