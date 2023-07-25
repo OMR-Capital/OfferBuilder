@@ -24,7 +24,7 @@
 		amount: 0,
 		sum: 0
 	};
-    $: wasteRow.sum = wasteRow.price * wasteRow.amount;
+	$: wasteRow.sum = wasteRow.price * wasteRow.amount;
 
 	let selectedWaste: Waste | undefined = {
 		waste_id: '',
@@ -54,10 +54,11 @@
 	function getWasteLabel(waste: Waste | undefined): string {
 		if (!waste) return '';
 
-		if (waste.fkko_code) {
-			return `${waste.name} (${waste.fkko_code})`;
-		}
-		return waste.name;
+		let wasteLabel = waste.fkko_code ? `${waste.name} (${waste.fkko_code})` : waste.name;
+        if (wasteLabel.length > 30) {
+            wasteLabel = wasteLabel.slice(0, 30) + '...';
+        }
+        return wasteLabel;
 	}
 
 	async function closeHandler() {
@@ -98,10 +99,10 @@
 		</Autocomplete>
 	</DialogBlock>
 	<DialogBlock title="Или введите вручную">
-        <div class="waste-input-container">
-            <Textfield style="width: 100%;" label="Наименование" bind:value={wasteRow.name} />
-            <Textfield style="width: 100%;" label="ФККО" bind:value={wasteRow.fkko_code} />
-        </div>
+		<div class="waste-input-container">
+			<Textfield style="width: 100%;" label="Наименование" bind:value={wasteRow.name} />
+			<Textfield style="width: 100%;" label="ФККО" bind:value={wasteRow.fkko_code} />
+		</div>
 	</DialogBlock>
 	<DialogBlock title="Ед. изм.">
 		<Set chips={Object.values(Unit)} let:chip choice bind:selected={wasteRow.unit}>
@@ -145,11 +146,11 @@
 </Dialog>
 
 <style>
-    .waste-input-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
+	.waste-input-container {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
 
 	.price-container {
 		display: flex;
@@ -165,7 +166,7 @@
 		gap: 2rem;
 	}
 
-    .dialog-footer {
+	.dialog-footer {
 		display: flex;
 		flex-direction: row;
 		justify-content: flex-end;

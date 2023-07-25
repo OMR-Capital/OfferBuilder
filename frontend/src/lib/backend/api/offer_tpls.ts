@@ -50,4 +50,12 @@ export class OfferTplsAPI extends BaseAPI {
 		const result = await this.fetchFile(`/offer_tpls/${offerTplId}/download`, 'GET');
 		return result;
 	}
+
+	async buildOffer(offerTplId: string, context: object): Promise<Result<Blob>> {
+		const result = await this.fetchFile(`/offer_tpls/${offerTplId}/build`, 'POST', { context });
+		if (result.ok) {
+			return { ok: true, value: result.value };
+		}
+		return result;
+	}
 }
