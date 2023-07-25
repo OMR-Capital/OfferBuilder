@@ -300,9 +300,7 @@ async def build_offer_tpl(
 
     offer_tpl_stream = BytesIO(filled_offer_tpl_data)
     headers = {
-        'Content-Disposition': 'attachment; filename="{filename}"'.format(
-            filename=db_offer_tpl.name,
-        ),
+        'Content-Disposition': 'attachment; filename="offer.docx"',
     }
     return StreamingResponse(
         offer_tpl_stream,
