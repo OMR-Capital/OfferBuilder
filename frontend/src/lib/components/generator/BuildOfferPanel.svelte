@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { OfferTplsAPI } from '$lib/backend/api/offer_tpls';
+	import { OffersAPI } from '$lib/backend/api/offers';
 	import type { OfferTpl } from '$lib/backend/models/offer_tpls';
+	import type { Offer } from '$lib/backend/models/offers';
 	import Panel from '$lib/components/common/Panel.svelte';
 	import Button, { Icon, Label } from '@smui/button';
 	import CircularLoader from '../common/CircularLoader.svelte';
@@ -12,6 +14,9 @@
 	export let offerContext: OfferContext;
 
 	const offerTplsApi = new OfferTplsAPI(token);
+	const offersApi = new OffersAPI(token);
+
+	let createdOffer: Offer | null = null;
 
 	let offerCreating = false;
 
@@ -34,15 +39,8 @@
 			if (!result.ok) {
 				snackbar.show('Ошибка при создании документа');
 			} else {
+                createdOffer = result.value;
 				snackbar.show('Документ успешно создан');
-				const blob = result.value;
-				const url = window.URL.createObjectURL(blob);
-				const a = document.createElement('a');
-				a.href = url;
-				a.download = offerTpl.name + '.docx';
-				document.body.appendChild(a);
-				a.click();
-				a.remove();
 			}
 			offerCreating = false;
 		}
@@ -55,6 +53,15 @@
 	<div class="build-btn-container">
 		{#if offerCreating}
 			<CircularLoader size="small" />
+		{:else if createdOffer !== null}
+			<Button
+				variant="outlined"
+				href={offersApi.getDownloadUrl(createdOffer.offer_id)}
+				download={createdOffer.name + '.docx'}
+			>
+				<Icon class="material-icons">download_outlined</Icon>
+				<Label>Скачать</Label>
+			</Button>
 		{:else}
 			<Button variant="outlined" on:click={buildOffer}>
 				<Icon class="material-icons">note_add</Icon>
@@ -62,7 +69,6 @@
 			</Button>
 		{/if}
 	</div>
-    {JSON.stringify(offerContext)}
 </Panel>
 
 <Snackbar bind:this={snackbar} />
