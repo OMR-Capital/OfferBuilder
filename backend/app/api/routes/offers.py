@@ -92,7 +92,6 @@ DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml
 async def download_offer(
     offer_id: str,
     drive: Annotated[_Drive, Depends(get_offers_drive)],
-    user: Annotated[User, Depends(get_current_user)],
 ) -> StreamingResponse:
     """Download offer file.
 
