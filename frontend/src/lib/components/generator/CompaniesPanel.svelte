@@ -13,7 +13,10 @@
 
 	const companiesApi = new CompaniesAPI(token);
 
-	export let selectedCompany: Company | null = null;
+	export let selectedCompany: Company = {
+        company_id: "",
+        name: "",
+    };
 	let companies: Company[] = [];
 	let companiesLoading = false;
 
@@ -46,7 +49,7 @@
 			combobox
 			options={companies}
 			getOptionLabel={getCompanyLabel}
-			bind:value={selectedCompany}
+			bind:value={selectedCompany.name}
 		/>
 	{/if}
 </Panel>
