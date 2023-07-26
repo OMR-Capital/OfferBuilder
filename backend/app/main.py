@@ -9,6 +9,7 @@ from fastapi.routing import APIRoute
 from app.api.routes.agents import router as agents_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.companies import router as companies_router
+from app.api.routes.offers import router as offers_router
 from app.api.routes.offer_tpls import router as offer_tpls_router
 from app.api.routes.users import router as users_router
 from app.api.routes.wastes import router as wastes_router
@@ -47,6 +48,7 @@ def create_app() -> FastAPI:
     app.include_router(companies_router)
     app.include_router(wastes_router)
     app.include_router(works_router)
+    app.include_router(offers_router)
     app.include_router(offer_tpls_router)
     app.include_router(agents_router)
 
