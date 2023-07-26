@@ -111,16 +111,15 @@ async def download_offer(
     if not db_offer:
         raise OfferNotFound()
 
-    offer_data = get_offer_file(drive, offer_id)
-    if not offer_data:
+    offer_stream = get_offer_file(drive, offer_id)
+    if not offer_stream:
         raise OfferNotFound()
 
-    offer_stream = BytesIO(offer_data)
     headers = {
         'Content-Disposition': 'attachment; filename="offer.docx"',
     }
     return StreamingResponse(
-        offer_stream,
+        offer_stream.as_iterator(),
         media_type=DOCX_MIME_TYPE,
         headers=headers,
     )
@@ -145,12 +144,12 @@ async def update_offer_file(
         OfferUploadFailed: \
             Raised when the offer upload failed.
     """
-    offer_data = decode_base64(offer_file)
-    if not offer_data:
+    offer_stream = decode_base64(offer_file)
+    if not offer_stream:
         raise BadOfferFile()
 
     try:
-        save_offer_file(drive, offer_id, offer_data)
+        save_offer_file(drive, offer_id, offer_stream)
     except Exception:
         raise OfferUploadFailed()
 

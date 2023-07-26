@@ -1,7 +1,7 @@
 """Offer templates utilities."""
 
 from io import BytesIO
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from deta import Drive
 # Deta has unconventional import style, so we need to use noqa here
@@ -10,6 +10,7 @@ from docxtpl.template import DocxTemplate
 from jinja2.exceptions import TemplateRuntimeError
 
 from app.api.exceptions.offer_tpls import IncorrectOfferTemplateContext
+from app.core.deta import BytesIterator
 
 
 def get_offer_tpls_drive() -> _Drive:
@@ -27,7 +28,7 @@ def get_offer_tpls_drive() -> _Drive:
 def get_offer_tpl_file(
     drive: _Drive,
     offer_tpl_id: str,
-) -> Optional[bytes]:
+) -> Optional[BytesIterator]:
     """Get offer template file data.
 
     Args:
@@ -35,29 +36,29 @@ def get_offer_tpl_file(
         offer_tpl_id (str): Offer template id
 
     Returns:
-        Optional[bytes]: Offer template file data if found, None otherwise
+        Optional[BytesIterator]: Offer template file data if found
     """
-    stream = drive.get(offer_tpl_id)
-    if not stream:
+    stream_body = drive.get(offer_tpl_id)
+    if not stream_body:
         return None
 
     # Deta is untyped, so we need to ignore type errors
-    return stream.read()  # type: ignore
+    return BytesIterator(stream_body.iter_chunks())
 
 
 def save_offer_tpl_file(
     drive: _Drive,
     offer_tpl_id: str,
-    offer_tpl_data: bytes,
+    offer_tpl_stream: Union[BytesIO, bytes],
 ) -> None:
     """Save offer template file data.
 
     Args:
         drive (_Drive): Offer templates drive
         offer_tpl_id (str): Offer template id
-        offer_tpl_data (bytes): Offer template file data
+        offer_tpl_stream (Union[BytesIO, bytes]): Offer template file data
     """
-    drive.put(offer_tpl_id, offer_tpl_data)
+    drive.put(offer_tpl_id, offer_tpl_stream)
 
 
 def delete_offer_tpl_file(
@@ -88,7 +89,7 @@ def validate_offer_tpl_file(
     docx_tpl = DocxTemplate(offer_tpl_stream)
     try:
         docx_tpl.get_docx()
-    except Exception:  # noqa: W0703
+    except Exception:
         return False
 
     return True
@@ -97,7 +98,7 @@ def validate_offer_tpl_file(
 def fill_offer_tpl(
     offer_tpl_data: bytes,
     context: dict[str, Any],
-) -> bytes:
+) -> BytesIO:
     """Fill offer template file data with context.
 
     Args:
@@ -108,10 +109,9 @@ def fill_offer_tpl(
         IncorrectOfferTemplateContext: If context is incorrect
 
     Returns:
-        bytes: Filled offer template file data
+        BytesIO: Filled offer template file data
     """
     offer_tpl_stream = BytesIO(offer_tpl_data)
-
     docx_tpl = DocxTemplate(offer_tpl_stream)
     try:
         docx_tpl.render(context)
@@ -121,4 +121,4 @@ def fill_offer_tpl(
     filled_offer_tpl_stream = BytesIO()
     docx_tpl.save(filled_offer_tpl_stream)
     filled_offer_tpl_stream.seek(0)
-    return filled_offer_tpl_stream.read()
+    return filled_offer_tpl_stream

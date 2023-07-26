@@ -1,6 +1,5 @@
 """Offers templates API."""
 
-from io import BytesIO
 from typing import Annotated
 
 # Deta has unconventional import style, so we need to use noqa here
@@ -116,16 +115,15 @@ async def download_offer_tpl(
     if not db_offer_tpl:
         raise OfferTemplateNotFound()
 
-    offer_tpl_data = get_offer_tpl_file(drive, offer_tpl_id)
-    if not offer_tpl_data:
+    offer_tpl_stream = get_offer_tpl_file(drive, offer_tpl_id)
+    if not offer_tpl_stream:
         raise OfferTemplateNotFound()
 
-    offer_tpl_stream = BytesIO(offer_tpl_data)
     headers = {
         'Content-Disposition': 'attachment; filename="offer.docx"',
     }
     return StreamingResponse(
-        offer_tpl_stream,
+        offer_tpl_stream.as_iterator(),
         media_type=DOCX_MIME_TYPE,
         headers=headers,
     )
@@ -296,18 +294,19 @@ async def build_offer_tpl(
     if not db_offer_tpl:
         raise OfferTemplateNotFound()
 
-    offer_tpl_data = get_offer_tpl_file(offer_tpls_drive, offer_tpl_id)
-    if not offer_tpl_data:
+    offer_tpl_stream = get_offer_tpl_file(offer_tpls_drive, offer_tpl_id)
+    if not offer_tpl_stream:
         raise OfferTemplateNotFound()
 
-    filled_offer_tpl_data = fill_offer_tpl(offer_tpl_data, context)
+    offer_tpl_data = offer_tpl_stream.read()
+    filled_offer_tpl_stream = fill_offer_tpl(offer_tpl_data, context)
 
     offer_id = generate_id()
     db_offer = OfferInDB(
         offer_id=offer_id,
         name=db_offer_tpl.name,
     )
-    save_offer_file(offers_drive, offer_id, filled_offer_tpl_data)
+    save_offer_file(offers_drive, offer_id, filled_offer_tpl_stream)
     await db_offer.save()
 
     return BuildedOfferResponse(
