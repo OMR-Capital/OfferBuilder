@@ -22,9 +22,9 @@ from app.api.schemes.offer_tpls import (
     OfferTemplateResponse,
     OfferTemplateUpdate,
 )
+from app.core.docx import decode_base64
 from app.core.models import generate_id
 from app.core.offer_tpls import (
-    decode_offer_tpl_file,
     delete_offer_tpl_file,
     fill_offer_tpl,
     get_offer_tpl_file,
@@ -148,7 +148,7 @@ async def update_offer_tpl_file(
         OfferTemplateUploadFailed: \
             Raised when the offer template upload failed.
     """
-    offer_tpl_data = decode_offer_tpl_file(offer_tpl_file)
+    offer_tpl_data = decode_base64(offer_tpl_file)
     if not offer_tpl_data:
         raise BadOfferTemplateFile()
 

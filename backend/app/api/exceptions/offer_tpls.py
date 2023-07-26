@@ -1,6 +1,5 @@
 """Offer templates API exceptions."""
 
-
 from http import HTTPStatus
 
 from fastapi import HTTPException
