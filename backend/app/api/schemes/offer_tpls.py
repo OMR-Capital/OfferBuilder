@@ -5,6 +5,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel
 
+from app.models.offer import Offer
 from app.models.offer_tpl import OfferTemplate
 
 
@@ -38,3 +39,9 @@ class OfferBuild(BaseModel):
     """Offer build scheme."""
 
     context: dict[str, Any]
+
+
+class BuildedOfferResponse(BaseModel):
+    """Response scheme of builded offer."""
+
+    offer: Offer

@@ -16,6 +16,7 @@ from app.api.exceptions.offer_tpls import (
     OfferTemplateUploadFailed,
 )
 from app.api.schemes.offer_tpls import (
+    BuildedOfferResponse,
     OfferBuild,
     OfferTemplateCreate,
     OfferTemplateListResponse,
@@ -32,7 +33,10 @@ from app.core.offer_tpls import (
     save_offer_tpl_file,
     validate_offer_tpl_file,
 )
+from app.core.offers import get_offers_drive, save_offer_file
+from app.db.offer import OfferInDB
 from app.db.offer_tpl import OfferTemplateInDB
+from app.models.offer import Offer
 from app.models.offer_tpl import OfferTemplate
 from app.models.user import User
 
@@ -269,15 +273,17 @@ async def delete_offer_tpl(
 async def build_offer_tpl(
     offer_tpl_id: str,
     offer_data: OfferBuild,
-    drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
+    offers_drive: Annotated[_Drive, Depends(get_offers_drive)],
+    offer_tpls_drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
     user: Annotated[User, Depends(get_current_user)],
-) -> StreamingResponse:
+) -> BuildedOfferResponse:
     """Fill offer template with data and return filled file.
 
     Args:
         offer_tpl_id (str): Offer template id.
         offer_data (OfferBuild): Offer data.
-        drive (Annotated[_Drive, Depends): Offer templates drive.
+        offers_drive (Annotated[_Drive, Depends): Offers drive.
+        offer_tpls_drive (Annotated[_Drive, Depends): Offer templates drive.
         user (Annotated[User, Depends): Current user.
 
     Returns:
@@ -290,18 +296,20 @@ async def build_offer_tpl(
     if not db_offer_tpl:
         raise OfferTemplateNotFound()
 
-    offer_tpl_data = get_offer_tpl_file(drive, offer_tpl_id)
+    offer_tpl_data = get_offer_tpl_file(offer_tpls_drive, offer_tpl_id)
     if not offer_tpl_data:
         raise OfferTemplateNotFound()
 
     filled_offer_tpl_data = fill_offer_tpl(offer_tpl_data, context)
 
-    offer_tpl_stream = BytesIO(filled_offer_tpl_data)
-    headers = {
-        'Content-Disposition': 'attachment; filename="offer.docx"',
-    }
-    return StreamingResponse(
-        offer_tpl_stream,
-        media_type=DOCX_MIME_TYPE,
-        headers=headers,
+    offer_id = generate_id()
+    db_offer = OfferInDB(
+        offer_id=offer_id,
+        name=db_offer_tpl.name,
+    )
+    save_offer_file(offers_drive, offer_id, filled_offer_tpl_data)
+    await db_offer.save()
+
+    return BuildedOfferResponse(
+        offer=Offer(**db_offer.dict()),
     )
