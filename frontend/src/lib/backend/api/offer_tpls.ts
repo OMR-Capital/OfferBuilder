@@ -57,5 +57,9 @@ export class OfferTplsAPI extends BaseAPI {
 			return { ok: true, value: result.value };
 		}
 		return result;
-	}
+    }
+
+    getDownloadUrl(offerTplId: string): string {
+        return `${this.baseUrl}/offer_tpls/${offerTplId}/download`;
+    }
 }

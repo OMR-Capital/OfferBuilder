@@ -19,8 +19,6 @@
 		{ id: 4, label: 'Mango', price: 25 }
 	];
 
-	let valueA: Fruit | null = null;
-
 	let snackbar: Snackbar;
 
 	const offerTplsApi = new OfferTplsAPI(token);
@@ -28,7 +26,6 @@
 	export let selectedOfferTpl: OfferTpl | null = null;
 	let offerTpls: OfferTpl[] = [];
 	let offerTplsLoading = false;
-	let fileDownloading = false;
 
 	async function updateOfferTpls() {
 		offerTplsLoading = true;
@@ -43,26 +40,6 @@
 
 	function getOfferTplKey(offerTpl: OfferTpl | null): string {
 		return offerTpl ? offerTpl.offer_tpl_id : '';
-	}
-
-	async function downloadOfferTpl() {
-		if (selectedOfferTpl == null) return;
-
-		fileDownloading = true;
-		const result = await offerTplsApi.downloadOfferTpl(selectedOfferTpl.offer_tpl_id);
-		fileDownloading = false;
-		if (result.ok) {
-			const blob = result.value;
-			const url = window.URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = selectedOfferTpl.name + '.docx';
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-		} else {
-			snackbar.show(result.error.message);
-		}
 	}
 
 	onMount(updateOfferTpls);
@@ -80,13 +57,11 @@
 			</Select>
 
 			<div class="download-btn-container">
-				{#if fileDownloading}
-					<CircularLoader size="small" />
-				{:else}
+				{#if selectedOfferTpl != null}
 					<Button
 						variant="outlined"
-						disabled={selectedOfferTpl == null}
-						on:click={downloadOfferTpl}
+						href={offerTplsApi.getDownloadUrl(selectedOfferTpl.offer_tpl_id)}
+						download={selectedOfferTpl ? selectedOfferTpl.name + '.docx' : ''}
 					>
 						<Icon class="material-icons">download_outlined</Icon>
 						<Label>Скачать выбранный шаблон</Label>
@@ -106,8 +81,8 @@
 		gap: 2rem;
 	}
 
-    .download-btn-container {
-        display: flex;
-        justify-content: flex-start;
-    }
+	.download-btn-container {
+		display: flex;
+		justify-content: flex-start;
+	}
 </style>

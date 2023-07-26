@@ -3,6 +3,8 @@ import { fetchApi, fetchFile } from './utils';
 import { goto } from '$app/navigation';
 
 export class BaseAPI {
+    public baseUrl = '/api';
+    
 	private token: string;
 
 	constructor(token: string) {

@@ -49,30 +49,6 @@
 		offerTplDeleting[offer_tpl_id] = false;
 	}
 
-	let fileDownloading: Record<string, boolean> = {};
-	$: {
-		offerTpls.map((offerTpl) => {
-			fileDownloading[offerTpl.offer_tpl_id] = false;
-		});
-	}
-
-	async function downloadOfferTpl(offerTpl: OfferTpl) {
-		fileDownloading[offerTpl.offer_tpl_id] = true;
-		const result = await offerTplsApi.downloadOfferTpl(offerTpl.offer_tpl_id);
-		fileDownloading[offerTpl.offer_tpl_id] = false;
-		if (result.ok) {
-			const blob = result.value;
-			const url = window.URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = offerTpl.name + '.docx';
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-		} else {
-			snackbar.show(result.error.message);
-		}
-	}
 	let createDialogOpen = false;
 
 	onMount(updateOfferTpls);
@@ -102,14 +78,11 @@
 							{/if}
 						</Cell>
 						<Cell>
-							{#if fileDownloading[offerTpl.offer_tpl_id]}
-								<CircularLoader size="small" />
-							{:else}
-								<IconButton
-									onClick={() => downloadOfferTpl(offerTpl)}
-									icon="download"
-								/>
-							{/if}
+							<IconButton
+								href={offerTplsApi.getDownloadUrl(offerTpl.offer_tpl_id)}
+								download={offerTpl.name + '.docx'}
+								icon="download"
+							/>
 						</Cell>
 					</Row>
 				{/each}
