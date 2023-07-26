@@ -116,7 +116,7 @@ async def download_offer(
         raise OfferNotFound()
 
     headers = {
-        'Content-Disposition': 'attachment; filename="offer.docx"',
+        'Content-Disposition': 'attachment',
     }
     return StreamingResponse(
         offer_stream.as_iterator(),

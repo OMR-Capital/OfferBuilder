@@ -120,7 +120,7 @@ async def download_offer_tpl(
         raise OfferTemplateNotFound()
 
     headers = {
-        'Content-Disposition': 'attachment; filename="offer.docx"',
+        'Content-Disposition': 'attachment',
     }
     return StreamingResponse(
         offer_tpl_stream.as_iterator(),
