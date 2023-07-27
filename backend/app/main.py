@@ -33,6 +33,22 @@ def use_route_names_as_operation_ids(app: FastAPI) -> None:
             route.operation_id = route.name  # in this case, 'read_items'
 
 
+def setup_routers(app: FastAPI) -> None:
+    """Include application routers.
+
+    Args:
+        app (FastAPI): FastAPI application.
+    """
+    app.include_router(users_router)
+    app.include_router(auth_router)
+    app.include_router(companies_router)
+    app.include_router(wastes_router)
+    app.include_router(works_router)
+    app.include_router(offers_router)
+    app.include_router(offer_tpls_router)
+    app.include_router(agents_router)
+
+
 def create_app() -> FastAPI:
     """Init FastAPI application.
 
@@ -43,15 +59,7 @@ def create_app() -> FastAPI:
         title='Offer Builder',
         root_path='/api',
     )
-    app.include_router(users_router)
-    app.include_router(auth_router)
-    app.include_router(companies_router)
-    app.include_router(wastes_router)
-    app.include_router(works_router)
-    app.include_router(offers_router)
-    app.include_router(offer_tpls_router)
-    app.include_router(agents_router)
-
+    setup_routers(app)
     return app
 
 
