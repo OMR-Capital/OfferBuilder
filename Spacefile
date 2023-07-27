@@ -6,11 +6,6 @@ micros:
     engine: python3.9
     run: uvicorn --app-dir=app main:app
     dev: poetry run uvicorn --app-dir=app main:app
-    public_routes:
-      - "/docs"
-      - "/openapi.json"
-      - "/redoc"
-
     path: api
 
     presets:
@@ -26,5 +21,4 @@ micros:
     primary: true
     src: ./frontend
     engine: svelte-kit
-    public_routes:
-      - "/"
+    public: true
