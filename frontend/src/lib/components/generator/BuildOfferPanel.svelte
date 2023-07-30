@@ -8,6 +8,7 @@
 	import CircularLoader from '../common/CircularLoader.svelte';
 	import Snackbar from '../common/Snackbar.svelte';
 	import type { OfferContext } from './types';
+	import { FileFormat } from '$lib/backend/models/docx';
 
 	export let token: string;
 	export let offerTpl: OfferTpl | null = null;
@@ -39,7 +40,7 @@
 			if (!result.ok) {
 				snackbar.show('Ошибка при создании документа');
 			} else {
-                createdOffer = result.value;
+				createdOffer = result.value;
 				snackbar.show('Документ успешно создан');
 			}
 			offerCreating = false;
@@ -54,14 +55,24 @@
 		{#if offerCreating}
 			<CircularLoader size="small" />
 		{:else if createdOffer !== null}
-			<Button
-				variant="outlined"
-				href={offersApi.getDownloadUrl(createdOffer.offer_id)}
-				download={createdOffer.name + '.docx'}
-			>
-				<Icon class="material-icons">download_outlined</Icon>
-				<Label>Скачать</Label>
-			</Button>
+			<div class="download-btns-container">
+				<Button
+					variant="outlined"
+					href={offersApi.getDownloadUrl(createdOffer.offer_id)}
+					download={createdOffer.name + '.docx'}
+				>
+					<Icon class="material-icons">description</Icon>
+					<Label>Скачать DOCX</Label>
+				</Button>
+				<Button
+					variant="outlined"
+					href={offersApi.getDownloadUrl(createdOffer.offer_id, FileFormat.pdf)}
+					download={createdOffer.name + '.pdf'}
+				>
+					<Icon class="material-icons">picture_as_pdf</Icon>
+					<Label>Скачать PDF</Label>
+				</Button>
+			</div>
 		{:else}
 			<Button variant="outlined" on:click={buildOffer}>
 				<Icon class="material-icons">note_add</Icon>
@@ -79,4 +90,11 @@
 		flex-direction: row;
 		align-items: flex-start;
 	}
+
+    .download-btns-container {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 2rem;
+    }
 </style>

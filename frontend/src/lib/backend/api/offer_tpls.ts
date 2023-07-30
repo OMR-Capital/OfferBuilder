@@ -1,4 +1,5 @@
 import { BaseAPI } from '../base_api';
+import { FileFormat } from '../models/docx';
 import type { OfferTpl } from '../models/offer_tpls';
 import type { Offer } from '../models/offers';
 import type { Result } from '../utils';
@@ -17,7 +18,7 @@ interface OfferTplCreate {
 }
 
 interface BuiltOfferResponse {
-    offer: Offer;
+	offer: Offer;
 }
 
 export class OfferTplsAPI extends BaseAPI {
@@ -50,7 +51,7 @@ export class OfferTplsAPI extends BaseAPI {
 			return { ok: true, value: result.value.offer_tpl };
 		}
 		return result;
-    }
+	}
 
 	async downloadOfferTpl(offerTplId: string): Promise<Result<Blob>> {
 		const result = await this.fetchFile(`/offer_tpls/${offerTplId}/download`, 'GET');
@@ -58,14 +59,16 @@ export class OfferTplsAPI extends BaseAPI {
 	}
 
 	async buildOffer(offerTplId: string, context: object): Promise<Result<Offer>> {
-		const result = await this.fetchApi(`/offer_tpls/${offerTplId}/build`, 'POST', { context }) as Result<BuiltOfferResponse>;
+		const result = (await this.fetchApi(`/offer_tpls/${offerTplId}/build`, 'POST', {
+			context
+		})) as Result<BuiltOfferResponse>;
 		if (result.ok) {
 			return { ok: true, value: result.value.offer };
 		}
 		return result;
-    }
+	}
 
-    getDownloadUrl(offerTplId: string): string {
-        return `${this.baseUrl}/offer_tpls/${offerTplId}/download`;
-    }
+	getDownloadUrl(offerTplId: string, filFormat: FileFormat = FileFormat.docx): string {
+		return `${this.baseUrl}/offer_tpls/${offerTplId}/download?format=${filFormat}`;
+	}
 }
