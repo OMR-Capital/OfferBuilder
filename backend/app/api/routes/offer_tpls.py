@@ -1,5 +1,6 @@
 """Offers templates API."""
 
+from io import BytesIO
 from typing import Annotated
 
 # Deta has unconventional import style, so we need to use noqa here
@@ -8,6 +9,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from app.api.dependencies import get_admin, get_current_user
+from app.api.exceptions.docx import FailConvertToPDF
 from app.api.exceptions.offer_tpls import (
     BadOfferTemplateFile,
     IncorrectOfferTemplateFile,
@@ -22,7 +24,13 @@ from app.api.schemes.offer_tpls import (
     OfferTemplateResponse,
     OfferTemplateUpdate,
 )
-from app.core.docx import decode_base64
+from app.core.deta import BytesIterator
+from app.core.docx import (
+    DocFormat,
+    convert_to_pdf,
+    decode_base64,
+    get_media_type,
+)
 from app.core.models import generate_id
 from app.core.offer_tpls import (
     delete_offer_tpl_file,
@@ -96,16 +104,18 @@ DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml
 async def download_offer_tpl(
     offer_tpl_id: str,
     drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
+    file_format: DocFormat = DocFormat.docx,
 ) -> StreamingResponse:
     """Download offer template file.
 
     Args:
         offer_tpl_id (str): Offer template id.
         drive (_Drive): Offer templates drive.
-        user (User): Current user.
+        output_format (DocFormat, optional): Output format. Defaults to DocFormat.docx.
 
     Raises:
         OfferTemplateNotFound: Raised when the offer template is not found.
+        FailConvertToPDF: Raised when the offer template conversion failed.
 
     Returns:
         StreamingResponse: Offer template file.
@@ -114,17 +124,16 @@ async def download_offer_tpl(
     if not db_offer_tpl:
         raise OfferTemplateNotFound()
 
-    offer_tpl_stream = get_offer_tpl_file(drive, offer_tpl_id)
+    offer_tpl_stream = get_offer_tpl_file(drive, offer_tpl_id, file_format)
     if not offer_tpl_stream:
         raise OfferTemplateNotFound()
 
-    headers = {
-        'Content-Disposition': 'attachment',
-    }
     return StreamingResponse(
         offer_tpl_stream.as_iterator(),
-        media_type=DOCX_MIME_TYPE,
-        headers=headers,
+        media_type=get_media_type(file_format),
+        headers={
+            'Content-Disposition': 'attachment',
+        },
     )
 
 
@@ -251,7 +260,7 @@ async def delete_offer_tpl(
     Raises:
         OfferTemplateNotFound: Raised when the offer template is not found.
 
-    Returns:
+     Returns:
         OfferTemplateResponse: Deleted offer template.
     """
     db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
@@ -293,7 +302,11 @@ async def build_offer_tpl(
     if not db_offer_tpl:
         raise OfferTemplateNotFound()
 
-    offer_tpl_stream = get_offer_tpl_file(offer_tpls_drive, offer_tpl_id)
+    offer_tpl_stream = get_offer_tpl_file(
+        offer_tpls_drive,
+        offer_tpl_id,
+        DocFormat.docx,
+    )
     if not offer_tpl_stream:
         raise OfferTemplateNotFound()
 

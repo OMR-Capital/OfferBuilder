@@ -11,6 +11,7 @@ from jinja2.exceptions import TemplateRuntimeError
 
 from app.api.exceptions.offer_tpls import IncorrectOfferTemplateContext
 from app.core.deta import BytesIterator
+from app.core.docx import DocFormat, UnsupportedFileFormat, convert_to_pdf
 
 
 def get_offer_tpls_drive() -> _Drive:
@@ -28,12 +29,20 @@ def get_offer_tpls_drive() -> _Drive:
 def get_offer_tpl_file(
     drive: _Drive,
     offer_tpl_id: str,
+    file_format: DocFormat,
 ) -> Optional[BytesIterator]:
     """Get offer template file data.
+
+    Files stored as docx. Other formats are converted from docx.
 
     Args:
         drive (_Drive): Offer templates drive
         offer_tpl_id (str): Offer template id
+        file_format (DocFormat): Offer template file format
+
+    Raises:
+        FailConvertToPDF: If file format is `pdf` and conversion failed
+        UnsupportedFileFormat: If file format is unsupported
 
     Returns:
         Optional[BytesIterator]: Offer template file data if found
@@ -42,8 +51,14 @@ def get_offer_tpl_file(
     if not stream_body:
         return None
 
-    # Deta is untyped, so we need to ignore type errors
-    return BytesIterator(stream_body.iter_chunks())
+    if file_format == DocFormat.docx:
+        return BytesIterator(stream_body.iter_chunks())
+
+    if file_format == DocFormat.pdf:
+        file_stream = convert_to_pdf(stream_body.read())
+        return BytesIterator(file_stream)
+
+    raise UnsupportedFileFormat()
 
 
 def save_offer_tpl_file(

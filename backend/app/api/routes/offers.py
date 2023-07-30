@@ -1,9 +1,10 @@
 """Offers API."""
 
 
-from io import BytesIO
 from typing import Annotated
 
+# Deta has unconventional import style, so we need to use noqa here
+from deta.drive import _Drive  # noqa: WPS450
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
@@ -19,7 +20,7 @@ from app.api.schemes.offers import (
     OfferResponse,
     OfferUpdate,
 )
-from app.core.docx import decode_base64
+from app.core.docx import DocFormat, decode_base64, get_media_type
 from app.core.models import generate_id
 from app.core.offers import (
     delete_offer_file,
@@ -32,10 +33,6 @@ from app.models.offer import Offer
 from app.models.user import User
 
 router = APIRouter(prefix='/offers', tags=['offers'])
-
-
-# Deta has unconventional import style, so we need to use noqa here
-from deta.drive import _Drive  # noqa: WPS450
 
 
 @router.get('/')
@@ -84,24 +81,22 @@ async def get_offer(
     )
 
 
-# flake8: noqa: E501
-DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-
-
 @router.get('/{offer_id}/download')
 async def download_offer(
     offer_id: str,
     drive: Annotated[_Drive, Depends(get_offers_drive)],
+    file_format: DocFormat = DocFormat.docx,
 ) -> StreamingResponse:
     """Download offer file.
 
     Args:
         offer_id (str): Offer id.
         drive (_Drive): Offers drive.
-        user (User): Current user.
+        file_format (DocFormat): Output format. Defaults to DocFormat.docx.
 
     Raises:
         OfferNotFound: Raised when the offer is not found.
+        FailConvertToPDF: Raised when the offer file is bad.
 
     Returns:
         StreamingResponse: Offer file.
@@ -110,17 +105,16 @@ async def download_offer(
     if not db_offer:
         raise OfferNotFound()
 
-    offer_stream = get_offer_file(drive, offer_id)
+    offer_stream = get_offer_file(drive, offer_id, file_format)
     if not offer_stream:
         raise OfferNotFound()
 
-    headers = {
-        'Content-Disposition': 'attachment',
-    }
     return StreamingResponse(
         offer_stream.as_iterator(),
-        media_type=DOCX_MIME_TYPE,
-        headers=headers,
+        media_type=get_media_type(file_format),
+        headers={
+            'Content-Disposition': 'attachment',
+        },
     )
 
 
@@ -167,7 +161,7 @@ async def create_offer(
         admin (User): Admin user.
 
     Returns:
-        Offer: Created offer.
+        OfferResponse: Created offer.
     """
     offer_id = generate_id()
 
@@ -207,7 +201,7 @@ async def update_offer(
         OfferNotFound: Raised when the offer is not found.
 
     Returns:
-        Offer: Updated offer.
+        OfferResponse: Updated offer.
     """
     db_offer = await OfferInDB.get_or_none(offer_id)
     if not db_offer:
