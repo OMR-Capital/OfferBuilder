@@ -10,6 +10,7 @@
 	import HelperText from '@smui/textfield/helper-text';
 	import Tooltip, { Wrapper } from '@smui/tooltip';
 	import { onMount } from 'svelte';
+	import NameForm from './NameForm.svelte';
 
 	export let token: string;
 
@@ -100,28 +101,7 @@
 				<div class="user-content__item user-title">
 					<h6>{$user.name}</h6>
 				</div>
-				<div class="user-content__item">
-					<Textfield bind:value={name} style="width: 100%">
-						<HelperText slot="helper" persistent>
-							{#if nameError}
-								{nameError}
-							{:else if name !== $user.name}
-								Нажмите кнопку, чтобы сохранить изменения
-							{:else if nameUpdated}
-								Изменения сохранены
-							{:else}
-								Вы можете изменить имя
-							{/if}
-						</HelperText>
-						<svelte:fragment slot="trailingIcon">
-							{#if name !== $user.name && !nameUpdating}
-								<IconButton onClick={updateName} icon="check" />
-							{:else if nameUpdating}
-								<CircularLoader size="small" />
-							{/if}
-						</svelte:fragment>
-					</Textfield>
-				</div>
+				<NameForm {token} />
 				<div class="user-content__item">
 					<Textfield bind:value={login} style="width: 100%">
 						<HelperText slot="helper" persistent>
@@ -175,10 +155,10 @@
 		flex-direction: column;
 		align-items: center;
 		width: min(20rem, 100vw);
+        gap: 2rem;
 	}
 
 	.user-content__item {
-		margin-bottom: 2rem;
 		width: 100%;
 	}
 
