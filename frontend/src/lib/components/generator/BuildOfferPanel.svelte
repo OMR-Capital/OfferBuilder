@@ -59,26 +59,29 @@
 <Panel title="Создание КП">
 	<div class="build-btn-container">
 		{#if offerCreating}
-			<CircularLoader size="small" />
+			<CircularLoader />
 		{:else if createdOffer !== null}
-			<div class="download-btns-container">
-				<Button
-					variant="outlined"
-					href={offersApi.getDownloadUrl(createdOffer.offer_id)}
-					download={createdOffer.name + '.docx'}
-				>
-					<Icon class="material-icons">description</Icon>
-					<Label>Скачать DOCX</Label>
-				</Button>
-				<Button
-					variant="outlined"
-					href={offersApi.getDownloadUrl(createdOffer.offer_id, FileFormat.pdf)}
-					download={createdOffer.name + '.pdf'}
-				>
-					<Icon class="material-icons">picture_as_pdf</Icon>
-					<Label>Скачать PDF</Label>
-				</Button>
-			</div>
+			<Button variant="outlined" on:click={buildOffer}>
+				<Icon class="material-icons">note_add</Icon>
+				<Label>Создать еше раз</Label>
+			</Button>
+			<div class="btns-splitter" />
+			<Button
+				variant="outlined"
+				href={offersApi.getDownloadUrl(createdOffer.offer_id)}
+				download={createdOffer.name + '.docx'}
+			>
+				<Icon class="material-icons">description</Icon>
+				<Label>Скачать DOCX</Label>
+			</Button>
+			<Button
+				variant="outlined"
+				href={offersApi.getDownloadUrl(createdOffer.offer_id, FileFormat.pdf)}
+				download={createdOffer.name + '.pdf'}
+			>
+				<Icon class="material-icons">picture_as_pdf</Icon>
+				<Label>Скачать PDF</Label>
+			</Button>
 		{:else}
 			<Button variant="outlined" on:click={buildOffer}>
 				<Icon class="material-icons">note_add</Icon>
@@ -94,13 +97,13 @@
 	.build-btn-container {
 		display: flex;
 		flex-direction: row;
-		align-items: flex-start;
+		align-items: center;
+		gap: 2rem;
 	}
 
-	.download-btns-container {
-		display: flex;
-		flex-direction: row;
-		align-items: flex-start;
-		gap: 2rem;
+	.btns-splitter {
+		width: 2px;
+		height: 2rem;
+		background-color: rgba(0, 0, 0, 0.12);
 	}
 </style>
