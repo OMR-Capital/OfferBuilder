@@ -295,9 +295,6 @@ async def build_offer_tpl(
     Returns:
         StreamingResponse: Filled offer template file.
     """
-    context = offer_data.context
-    context['user'] = user
-
     db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
     if not db_offer_tpl:
         raise OfferTemplateNotFound()
@@ -311,7 +308,7 @@ async def build_offer_tpl(
         raise OfferTemplateNotFound()
 
     offer_tpl_data = offer_tpl_stream.read()
-    filled_offer_tpl_stream = fill_offer_tpl(offer_tpl_data, context)
+    filled_offer_tpl_stream = fill_offer_tpl(offer_tpl_data, offer_data.context)
 
     offer_id = generate_id()
     db_offer = OfferInDB(
