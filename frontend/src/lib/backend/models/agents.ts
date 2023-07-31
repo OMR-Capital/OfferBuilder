@@ -10,8 +10,9 @@ export interface Agent {
  * Spaces will be removed.
  */
 export function normalizeINN(inn: string): string | null {
-	if (!/^(\d| )+$/.test(inn)) {
+    inn = inn.replace(/ /g, '');
+	if (!/^\d{10}|\d{12}$/.test(inn)) {
 		return null;
-	}
-	return inn.replace(/ /g, '');
+    }
+    return inn;
 }
