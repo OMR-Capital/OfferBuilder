@@ -8,13 +8,13 @@
 	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
-	import AddWasteRowDialog from './AddWasteRowDialog.svelte';
-	import type { GeneralRow, WasteRow } from '../types';
+	import type { GeneralRow } from '../types';
 	import AddGeneralRowDialog from './AddGeneralRowDialog.svelte';
 
 	export let token: string;
 
 	export let generalRows: GeneralRow[] = [];
+    $: nextRowNumber = generalRows.length + 1;
 
 	const wastesApi = new WastesAPI(token);
 	const worksApi = new WorksAPI(token);
@@ -101,6 +101,7 @@
 	bind:open={addRowDialogOpen}
 	{availableWastes}
     {availableWorks}
+    bind:rowNumber={nextRowNumber}
 	onConfirm={(wasteRow) => {
         generalRows = [...generalRows, wasteRow];
     }}

@@ -12,6 +12,7 @@
 	export let token: string;
 
 	export let wasteRows: WasteRow[] = [];
+    $: nextRowNumber = wasteRows.length + 1;
 
 	const wastesApi = new WastesAPI(token);
 
@@ -85,6 +86,7 @@
 <AddWasteRowDialog
 	bind:open={addRowDialogOpen}
 	{availableWastes}
+    bind:rowNumber={nextRowNumber}
 	onConfirm={(wasteRow) => {
 		wasteRows = [...wasteRows, wasteRow];
 	}}

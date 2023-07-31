@@ -15,11 +15,12 @@
 
 	export let availableWastes: Waste[];
 	export let availableWorks: Work[];
-
+	export let rowNumber: number;
 	export let open = false;
 	export let onConfirm: (generalRow: GeneralRow) => void;
 
 	let generalRow: GeneralRow = {
+		num: rowNumber,
 		name: '',
 		unit: Unit.CubeMetres,
 		price: 0,
@@ -60,6 +61,7 @@
 
 	async function closeHandler() {
 		generalRow = {
+			num: rowNumber,
 			name: '',
 			unit: Unit.CubeMetres,
 			price: 0,

@@ -13,10 +13,12 @@
 	import { Unit } from '../types';
 
 	export let availableWastes: Waste[];
+    export let rowNumber: number;
 	export let open = false;
 	export let onConfirm: (wasteRow: WasteRow) => void;
 
 	let wasteRow: WasteRow = {
+        num: rowNumber,
 		name: '',
 		fkko_code: '',
 		unit: Unit.CubeMetres,
@@ -63,6 +65,7 @@
 
 	async function closeHandler() {
 		wasteRow = {
+            num: rowNumber,
 			name: '',
 			fkko_code: '',
 			unit: Unit.CubeMetres,

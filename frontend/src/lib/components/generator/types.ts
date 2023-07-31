@@ -1,5 +1,6 @@
 import type { Agent } from '$lib/backend/models/agents';
 import type { Company } from '$lib/backend/models/companies';
+import type { User } from '$lib/backend/models/users';
 
 export enum OfferType {
 	Wastes = 'На отходы',
@@ -13,6 +14,7 @@ export enum Unit {
 }
 
 export interface WasteRow {
+	num: number;
 	name: string;
 	fkko_code: string;
 	unit: Unit;
@@ -22,6 +24,7 @@ export interface WasteRow {
 }
 
 export interface GeneralRow {
+	num: number;
 	name: string;
 	unit: Unit;
 	price: number;
@@ -34,5 +37,5 @@ export interface OfferContext {
 	agent?: Agent;
 	offerData?: WasteRow[] | GeneralRow[];
 	company?: Company;
-	date?: string;
+    date?: string;
 }
