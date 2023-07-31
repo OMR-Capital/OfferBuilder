@@ -110,7 +110,7 @@ def get_access_token_payload(token: str) -> dict[str, Any]:
     return jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
 
 
-def generate_password(length: int = 4) -> str:
+def generate_password(length: int = 8) -> str:
     """Generate random password.
 
     Password is generated with secrets.token_urlsafe().
