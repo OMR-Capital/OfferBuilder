@@ -11,6 +11,7 @@
 	import Tooltip, { Wrapper } from '@smui/tooltip';
 	import { onMount } from 'svelte';
 	import NameForm from './NameForm.svelte';
+	import LoginForm from './LoginForm.svelte';
 
 	export let token: string;
 
@@ -102,28 +103,7 @@
 					<h6>{$user.name}</h6>
 				</div>
 				<NameForm {token} />
-				<div class="user-content__item">
-					<Textfield bind:value={login} style="width: 100%">
-						<HelperText slot="helper" persistent>
-							{#if loginError}
-								{loginError}
-							{:else if login !== $user.login}
-								Нажмите кнопку, чтобы сохранить изменения
-							{:else if loginUpdated}
-								Изменения сохранены
-							{:else}
-								Вы можете изменить логин
-							{/if}
-						</HelperText>
-						<svelte:fragment slot="trailingIcon">
-							{#if login !== $user.login && !loginUpdating}
-								<IconButton onClick={updateLogin} icon="check" />
-							{:else if loginUpdating}
-								<CircularLoader size="small" />
-							{/if}
-						</svelte:fragment>
-					</Textfield>
-				</div>
+                <LoginForm {token} />
 				<div class="user-content__item">
 					{#if password}
 						<p>Ваш новый пароль: <strong>{password}</strong></p>

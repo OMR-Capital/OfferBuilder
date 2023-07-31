@@ -36,7 +36,9 @@
     <form on:submit|preventDefault={updateName}>
         <Textfield
             style="width: 100%"
+            label="Имя"
             type="text"
+            input$name="name"
             input$autocomplete="name"
             bind:value={name}
         >
