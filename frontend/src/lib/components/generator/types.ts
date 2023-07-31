@@ -33,6 +33,7 @@ export interface GeneralRow {
 }
 
 export interface OfferContext {
+    author?: User;
 	offerType?: OfferType;
 	agent?: Agent;
 	offerData?: WasteRow[] | GeneralRow[];

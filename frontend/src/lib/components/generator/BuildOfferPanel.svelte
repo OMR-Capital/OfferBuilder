@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { OfferTplsAPI } from '$lib/backend/api/offer_tpls';
 	import { OffersAPI } from '$lib/backend/api/offers';
+	import { FileFormat } from '$lib/backend/models/docx';
 	import type { OfferTpl } from '$lib/backend/models/offer_tpls';
 	import type { Offer } from '$lib/backend/models/offers';
 	import Panel from '$lib/components/common/Panel.svelte';
+	import { user } from '$lib/stores';
 	import Button, { Icon, Label } from '@smui/button';
 	import CircularLoader from '../common/CircularLoader.svelte';
 	import Snackbar from '../common/Snackbar.svelte';
 	import type { OfferContext } from './types';
-	import { FileFormat } from '$lib/backend/models/docx';
 
 	export let token: string;
 	export let offerTpl: OfferTpl | null = null;
@@ -34,6 +35,7 @@
 			snackbar.show('Не введены данные документа');
 		} else {
 			offerCreating = true;
+			offerContext.author = $user;
 			offerContext.date = new Date().toLocaleDateString('ru-RU', {
 				year: 'numeric',
 				month: 'long',
