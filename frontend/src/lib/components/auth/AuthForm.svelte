@@ -37,54 +37,56 @@
 
 <Card padded>
 	<Content>
-		<div class="auth-content">
-			<div class="auth-content__item auth-title">
-				<h6>Авторизация</h6>
-			</div>
-			<div class="auth-content__item">
-				<Textfield
-					label="Логин"
-					style="width: 100%;"
-					invalid={authFailed}
-					bind:value={username}
-					on:input={() => (authFailed = false)}
-				/>
-			</div>
-			<div class="auth-content__item">
-				<Textfield
-					label="Пароль"
-					type="password"
-					style="width: 100%;"
-					invalid={authFailed}
-					bind:value={password}
-					on:input={() => (authFailed = false)}
-				>
-					<HelperText persistent slot="helper">
-						{authFailed ? 'Неверный логин или пароль' : ''}
-					</HelperText>
-				</Textfield>
-			</div>
-			<div class="auth-content__item">
-				{#if authorizing}
-					<CircularLoader />
-				{:else}
-					<Button variant="outlined" on:click={login} style="width: 100%;">
-						<Label>Войти</Label>
-					</Button>
-				{/if}
-			</div>
-		</div>
+        <form on:submit|preventDefault={login}>
+            <div class="auth-content">
+                <div class="auth-content__item auth-title">
+                    <h6>Авторизация</h6>
+                </div>
+                <div class="auth-content__item">
+                    <Textfield
+                        label="Логин"
+                        style="width: 100%;"
+                        invalid={authFailed}
+                        type="text"
+                        input$name="username"
+                        input$autocomplete="username"
+                        required
+                        bind:value={username}
+                        on:input={() => (authFailed = false)}
+                    />
+                </div>
+                <div class="auth-content__item">
+                    <Textfield
+                        label="Пароль"
+                        style="width: 100%;"
+                        invalid={authFailed}
+                        type="password"
+                        input$name="password"
+                        input$autocomplete="current-password"
+                        required
+                        bind:value={password}
+                        on:input={() => (authFailed = false)}
+                    >
+                        <HelperText persistent slot="helper">
+                            {authFailed ? 'Неверный логин или пароль' : ''}
+                        </HelperText>
+                    </Textfield>
+                </div>
+                <div class="auth-content__item">
+                    {#if authorizing}
+                        <CircularLoader />
+                    {:else}
+                        <Button variant="outlined" type="submit" style="width: 100%;">
+                            <Label>Войти</Label>
+                        </Button>
+                    {/if}
+                </div>
+            </div>
+        </form>
 	</Content>
 </Card>
 
 <style>
-	.auth-container {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 100vh;
-	}
-
 	.auth-title {
 		display: flex;
 		justify-content: center;
