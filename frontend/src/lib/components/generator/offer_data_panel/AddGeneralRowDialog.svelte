@@ -106,13 +106,13 @@
 	</DialogBlock>
 	<DialogBlock title="Цена за ед. изм.">
 		<div class="price-container">
-			<Textfield style="width: 100%;" type="number" bind:value={generalRow.price} />
+			<Textfield style="width: 100%;" type="number" input$min="0" bind:value={generalRow.price} />
 			<Label style="min-width: 3rem;">руб/{generalRow.unit}</Label>
 		</div>
 	</DialogBlock>
 	<DialogBlock title="Кол-во">
 		<div class="amount-container">
-			<Textfield style="width: 100%;" type="number" bind:value={generalRow.amount} />
+			<Textfield style="width: 100%;" type="number" input$min="0" bind:value={generalRow.amount} />
 			<Label style="min-width: 3rem;">{generalRow.unit}</Label>
 		</div>
 	</DialogBlock>

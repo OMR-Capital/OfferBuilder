@@ -13,12 +13,12 @@
 	import { Unit } from '../types';
 
 	export let availableWastes: Waste[];
-    export let rowNumber: number;
+	export let rowNumber: number;
 	export let open = false;
 	export let onConfirm: (wasteRow: WasteRow) => void;
 
 	let wasteRow: WasteRow = {
-        num: rowNumber,
+		num: rowNumber,
 		name: '',
 		fkko_code: '',
 		unit: Unit.CubeMetres,
@@ -57,15 +57,15 @@
 		if (!waste) return '';
 
 		let wasteLabel = waste.fkko_code ? `${waste.name} (${waste.fkko_code})` : waste.name;
-        if (wasteLabel.length > 30) {
-            wasteLabel = wasteLabel.slice(0, 30) + '...';
-        }
-        return wasteLabel;
+		if (wasteLabel.length > 30) {
+			wasteLabel = wasteLabel.slice(0, 30) + '...';
+		}
+		return wasteLabel;
 	}
 
 	async function closeHandler() {
 		wasteRow = {
-            num: rowNumber,
+			num: rowNumber,
 			name: '',
 			fkko_code: '',
 			unit: Unit.CubeMetres,
@@ -116,13 +116,13 @@
 	</DialogBlock>
 	<DialogBlock title="Цена за ед. изм.">
 		<div class="price-container">
-			<Textfield style="width: 100%;" type="number" bind:value={wasteRow.price} />
+			<Textfield style="width: 100%;" type="number" input$min="0" bind:value={wasteRow.price} />
 			<Label style="min-width: 3rem;">руб/{wasteRow.unit}</Label>
 		</div>
 	</DialogBlock>
 	<DialogBlock title="Кол-во">
 		<div class="amount-container">
-			<Textfield style="width: 100%;" type="number" bind:value={wasteRow.amount} />
+			<Textfield style="width: 100%;" type="number" input$min="0" bind:value={wasteRow.amount} />
 			<Label style="min-width: 3rem;">{wasteRow.unit}</Label>
 		</div>
 	</DialogBlock>
