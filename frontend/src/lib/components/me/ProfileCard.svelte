@@ -2,76 +2,16 @@
 	import { UsersAPI } from '$lib/backend/api/users';
 	import type { User } from '$lib/backend/models/users';
 	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
-	import IconButton from '$lib/components/common/IconButton.svelte';
 	import { user } from '$lib/stores';
-	import Button from '@smui/button';
 	import Card, { Content } from '@smui/card';
-	import Textfield from '@smui/textfield';
-	import HelperText from '@smui/textfield/helper-text';
-	import Tooltip, { Wrapper } from '@smui/tooltip';
 	import { onMount } from 'svelte';
-	import NameForm from './NameForm.svelte';
 	import LoginForm from './LoginForm.svelte';
+	import NameForm from './NameForm.svelte';
+	import PasswordForm from './PasswordForm.svelte';
 
 	export let token: string;
 
 	const userApi = new UsersAPI(token);
-
-	let name = $user.name;
-	let nameUpdated = false;
-	let nameUpdating = false;
-	let nameError = '';
-
-	async function updateName() {
-		if (name === $user.name) {
-			return;
-		}
-		nameUpdating = true;
-		const result = await userApi.updateMyUser({ name });
-		if (!result.ok) {
-			nameError = result.error.message;
-		} else {
-			$user = result.value;
-			name = $user.name;
-			nameUpdated = true;
-		}
-		nameUpdating = false;
-	}
-
-	let login = $user.login;
-	let loginUpdated = false;
-	let loginUpdating = false;
-	let loginError = '';
-
-	async function updateLogin() {
-		if (login === $user.login) {
-			return;
-		}
-		loginUpdating = true;
-		const result = await userApi.updateMyUser({ login });
-		if (!result.ok) {
-			loginError = result.error.message;
-		} else {
-			$user = result.value;
-			login = $user.login;
-			loginUpdated = true;
-		}
-		loginUpdating = false;
-	}
-
-	let password: string | null = null;
-	let passwordUpdating = false;
-
-	async function regenPassword() {
-		passwordUpdating = true;
-		const result = await userApi.regenMyPassword();
-		if (!result.ok) {
-			loginError = result.error.message;
-		} else {
-			password = result.value;
-		}
-		passwordUpdating = false;
-	}
 
 	async function updateUser(): Promise<User> {
 		const result = await userApi.getMyUser();
@@ -79,8 +19,6 @@
 			throw result.error;
 		} else {
 			$user = result.value;
-			name = $user.name;
-			login = $user.login;
 			return result.value;
 		}
 	}
@@ -103,21 +41,8 @@
 					<h6>{$user.name}</h6>
 				</div>
 				<NameForm {token} />
-                <LoginForm {token} />
-				<div class="user-content__item">
-					{#if password}
-						<p>Ваш новый пароль: <strong>{password}</strong></p>
-					{:else if passwordUpdating}
-						<CircularLoader />
-					{:else}
-						<Wrapper>
-							<Button variant="outlined" style="width: 100%" on:click={regenPassword}>
-								Обновить пароль
-							</Button>
-							<Tooltip>Пароль генерируется автоматически</Tooltip>
-						</Wrapper>
-					{/if}
-				</div>
+				<LoginForm {token} />
+				<PasswordForm {token} />
 			{/if}
 		</div>
 	</Content>
@@ -135,14 +60,6 @@
 		flex-direction: column;
 		align-items: center;
 		width: min(20rem, 100vw);
-        gap: 2rem;
-	}
-
-	.user-content__item {
-		width: 100%;
-	}
-
-	.user-content__item:last-child {
-		margin-bottom: 0;
+		gap: 2rem;
 	}
 </style>
