@@ -18,6 +18,10 @@ micros:
           description: "API key for Dadata"
         - name: "PDF_API_KEY"
           description: "API key for PSPDKit"
+        - name: "ROOT_LOGIN"
+          description: "Root login"
+        - name: "ROOT_PASSWORD"
+          description: "Root password"
 
   - name: frontend
     primary: true

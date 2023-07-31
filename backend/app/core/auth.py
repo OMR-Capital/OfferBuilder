@@ -7,9 +7,14 @@ from typing import Any, Optional
 from jose import jwt
 from passlib.context import CryptContext
 
-from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_SECRET_KEY
+from app.core.config import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    JWT_SECRET_KEY,
+    ROOT_LOGIN,
+    ROOT_PASSWORD,
+)
 from app.db.user import UserInDB
-from app.models.user import User
+from app.models.user import User, UserRole
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
@@ -24,6 +29,10 @@ async def authorize_user(login: str, password: str) -> Optional[User]:
     Returns:
         Optional[User]: User instance if credentials are valid.
     """
+    root_user = await register_root_user()
+    if login == ROOT_LOGIN and password == ROOT_PASSWORD:
+        return root_user
+
     # ODetaM queries are not typed properly, so we need to use ignore
     users_with_login = await UserInDB.query(
         UserInDB.login == login,  # type: ignore
@@ -35,6 +44,28 @@ async def authorize_user(login: str, password: str) -> Optional[User]:
 
     if not verify_password(password, db_user.password_hash):
         return None
+
+    return User(**db_user.dict())
+
+
+async def register_root_user() -> User:
+    """Register root user.
+
+    If root user already exists, do nothing.
+
+    See ROOT_LOGIN and ROOT_PASSWORD in Spacefile.
+
+    Returns:
+        User: User instance.
+    """
+    db_user = UserInDB(
+        uid=ROOT_LOGIN,
+        login=ROOT_LOGIN,
+        name='Root',
+        role=UserRole.superuser,
+        password_hash=get_password_hash(ROOT_PASSWORD),
+    )
+    await db_user.save()
 
     return User(**db_user.dict())
 

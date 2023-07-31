@@ -19,6 +19,9 @@ class UserRole(Enum):
     # Employee can create offers
     employee = 'employee'
 
+    # Superuser has developer rights
+    superuser = 'superuser'
+
 
 class User(BaseModel):
     """User representation in business logic."""
