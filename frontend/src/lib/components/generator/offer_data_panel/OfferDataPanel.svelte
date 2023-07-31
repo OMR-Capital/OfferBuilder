@@ -10,12 +10,6 @@
 	export let offerData: WasteRow[] | GeneralRow[] = [];
 	export let offerType: OfferType = OfferType.Wastes;
 	export let offerTotal: number = 0;
-	$: {
-		offerTotal = 0;
-		for (const row of offerData) {
-			offerTotal += row.sum;
-		}
-	}
 
 	let wasteRows: WasteRow[] = [];
 	let generalRows: GeneralRow[] = [];
@@ -33,9 +27,9 @@
 	</div>
 	<div class="items-table-container">
 		{#if offerType === OfferType.Wastes}
-			<WastesTable {token} bind:wasteRows />
+			<WastesTable {token} bind:wasteRows bind:totalPrice={offerTotal}/>
 		{:else}
-			<GeneralTable {token} bind:generalRows />
+			<GeneralTable {token} bind:generalRows bind:totalPrice={offerTotal} />
 		{/if}
 	</div>
 </Panel>

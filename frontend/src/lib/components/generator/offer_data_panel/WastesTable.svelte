@@ -6,13 +6,21 @@
 	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
-	import AddWasteRowDialog from './AddWasteRowDialog.svelte';
 	import type { WasteRow } from '../types';
+	import AddWasteRowDialog from './AddWasteRowDialog.svelte';
 
 	export let token: string;
 
 	export let wasteRows: WasteRow[] = [];
-    $: nextRowNumber = wasteRows.length + 1;
+	$: nextRowNumber = wasteRows.length + 1;
+
+	export let totalPrice: number = 0;
+	$: {
+		totalPrice = 0;
+		for (const row of wasteRows) {
+			totalPrice += row.sum;
+		}
+	}
 
 	const wastesApi = new WastesAPI(token);
 
@@ -70,7 +78,7 @@
 			/>
 		</DataTable>
 	</div>
-	<div class="add-btn-container">
+	<div class="footer">
 		<Button
 			variant="outlined"
 			on:click={() => {
@@ -80,13 +88,17 @@
 			<Icon class="material-icons">add_circle_outlined</Icon>
 			Добавить элемент
 		</Button>
+		<div class="offer-total-container">
+			<b>Итого:</b>
+			<span>{totalPrice} руб.</span>
+		</div>
 	</div>
 </div>
 
 <AddWasteRowDialog
 	bind:open={addRowDialogOpen}
 	{availableWastes}
-    bind:rowNumber={nextRowNumber}
+	bind:rowNumber={nextRowNumber}
 	onConfirm={(wasteRow) => {
 		wasteRows = [...wasteRows, wasteRow];
 	}}
@@ -105,4 +117,12 @@
 	.table-container {
 		flex-grow: 1;
 	}
+
+    .footer {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
 </style>

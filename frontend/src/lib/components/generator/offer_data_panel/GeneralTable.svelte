@@ -14,7 +14,15 @@
 	export let token: string;
 
 	export let generalRows: GeneralRow[] = [];
-    $: nextRowNumber = generalRows.length + 1;
+	$: nextRowNumber = generalRows.length + 1;
+
+    export let totalPrice: number = 0;
+	$: {
+		totalPrice = 0;
+		for (const row of generalRows) {
+			totalPrice += row.sum;
+		}
+	}
 
 	const wastesApi = new WastesAPI(token);
 	const worksApi = new WorksAPI(token);
@@ -84,7 +92,7 @@
 			/>
 		</DataTable>
 	</div>
-	<div class="add-btn-container">
+	<div class="footer">
 		<Button
 			variant="outlined"
 			on:click={() => {
@@ -94,17 +102,21 @@
 			<Icon class="material-icons">add_circle_outlined</Icon>
 			Добавить элемент
 		</Button>
+        <div class="offer-total-container">
+			<b>Итого:</b>
+			<span>{totalPrice} руб.</span>
+		</div>
 	</div>
 </div>
 
 <AddGeneralRowDialog
 	bind:open={addRowDialogOpen}
 	{availableWastes}
-    {availableWorks}
-    bind:rowNumber={nextRowNumber}
+	{availableWorks}
+	bind:rowNumber={nextRowNumber}
 	onConfirm={(wasteRow) => {
-        generalRows = [...generalRows, wasteRow];
-    }}
+		generalRows = [...generalRows, wasteRow];
+	}}
 />
 
 <Snackbar bind:this={snackbar} />
@@ -120,4 +132,12 @@
 	.table-container {
 		flex-grow: 1;
 	}
+
+    .footer {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
 </style>
