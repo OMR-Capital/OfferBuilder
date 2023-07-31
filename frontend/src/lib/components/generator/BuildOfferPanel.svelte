@@ -34,7 +34,11 @@
 			snackbar.show('Не введены данные документа');
 		} else {
 			offerCreating = true;
-			offerContext.date = new Date().toDateString();
+			offerContext.date = new Date().toLocaleDateString('ru-RU', {
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric'
+			});
 
 			const result = await offerTplsApi.buildOffer(offerTpl.offer_tpl_id, offerContext);
 			if (!result.ok) {
@@ -91,10 +95,10 @@
 		align-items: flex-start;
 	}
 
-    .download-btns-container {
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
-        gap: 2rem;
-    }
+	.download-btns-container {
+		display: flex;
+		flex-direction: row;
+		align-items: flex-start;
+		gap: 2rem;
+	}
 </style>

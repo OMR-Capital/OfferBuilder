@@ -114,6 +114,9 @@
 							<li>
 								Автор документа: <b>&lbrace;&lbrace; author.name &rbrace;&rbrace;</b>
 							</li>
+                            <li>
+								Дата создания: <b>&lbrace;&lbrace; date &rbrace;&rbrace;</b>
+							</li>
 						</ul>
 					</li>
 					<li>Сохранить документ.</li>
