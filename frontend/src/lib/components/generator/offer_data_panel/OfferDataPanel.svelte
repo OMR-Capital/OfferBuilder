@@ -9,10 +9,17 @@
 	export let token: string;
 	export let offerData: WasteRow[] | GeneralRow[] = [];
 	export let offerType: OfferType = OfferType.Wastes;
+	export let offerTotal: number = 0;
+	$: {
+		offerTotal = 0;
+		for (const row of offerData) {
+			offerTotal += row.sum;
+		}
+	}
 
 	let wasteRows: WasteRow[] = [];
 	let generalRows: GeneralRow[] = [];
-    $: offerData = offerType === OfferType.Wastes ? wasteRows : generalRows;
+	$: offerData = offerType === OfferType.Wastes ? wasteRows : generalRows;
 </script>
 
 <Panel title="Данные КП">

@@ -111,6 +111,9 @@
 									<li>Сумма: <b>&lbrace;&lbrace; item.sum &rbrace;&rbrace;</b></li>
 								</ul>
 							</li>
+                            <li>
+                                Общая стоимость предложения: <b>&lbrace;&lbrace; offerTotal &rbrace;&rbrace;</b>
+                            </li>
 							<li>
 								Автор документа: <b>&lbrace;&lbrace; author.name &rbrace;&rbrace;</b>
 							</li>

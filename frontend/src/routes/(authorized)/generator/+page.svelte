@@ -21,6 +21,7 @@
 		token={data.token}
 		bind:offerType={offerContext.offerType}
 		bind:offerData={offerContext.offerData}
+        bind:offerTotal={offerContext.offerTotal}
 	/>
 	<BuildOfferPanel token={data.token} bind:offerContext bind:offerTpl />
 </div>
