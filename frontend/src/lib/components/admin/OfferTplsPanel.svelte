@@ -5,12 +5,12 @@
 	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 	import IconButton from '$lib/components/common/IconButton.svelte';
 	import Snackbar from '$lib/components/common/Snackbar.svelte';
+	import Accordion, { Panel as AccordionPanel, Content, Header } from '@smui-extra/accordion';
 	import Button, { Icon } from '@smui/button';
 	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
 	import Panel from '../common/Panel.svelte';
-
 	export let token: string;
 
 	let snackbar: Snackbar;
@@ -55,6 +55,80 @@
 </script>
 
 <Panel title="Шаблоны договоров">
+	<Accordion>
+		<AccordionPanel>
+			<Header>
+				<div class="info-header">
+					<Icon class="material-icons">info_outlined</Icon>
+					Инструкция по созданию шаблонов
+				</div>
+			</Header>
+			<Content>
+				<p>Для создания шаблона договора необходимо:</p>
+				<ol>
+					<li>
+						Создать документ в формате <b>docx</b> с помощью Microsoft Word или аналогичной программы.
+					</li>
+					<li>
+						В документе можно указать поля, которые будут заменены на введенные значения.
+					</li>
+					<li>
+						Поля должны быть в формате <b>&lbrace;&lbrace; field_name &rbrace;&rbrace;</b>, где
+						<b>field_name</b> - название поля. Доступные поля:
+						<ul>
+							<li>
+								Название организации: <b>&lbrace;&lbrace; company.name &rbrace;&rbrace;</b>
+							</li>
+							<li>
+								Контр-агент:
+								<ol>
+									<li>Полное название: <b>&lbrace;&lbrace; agent.fullname &rbrace;&rbrace;</b></li>
+									<li>
+										Сокращенное название: <b>&lbrace;&lbrace; agent.shortname &rbrace;&rbrace;</b>
+									</li>
+									<li>ИНН: <b>&lbrace;&lbrace; agent.inn &rbrace;&rbrace;</b></li>
+									<li>ФИО директора: <b>&lbrace;&lbrace; agent.management &rbrace;&rbrace;</b></li>
+								</ol>
+							</li>
+							<li>
+								Тип предложения: <b>&lbrace;&lbrace; offerType &rbrace;&rbrace;</b>
+							</li>
+							<li>
+								Данные коммерческого предложения: <b>&lbrace;&lbrace; offerData &rbrace;&rbrace;</b>
+
+								Поля внутри строк предложения:
+								<ul>
+									<li>Порядковый номер: <b>&lbrace;&lbrace; item.num &rbrace;&rbrace;</b></li>
+									<li>Название: <b>&lbrace;&lbrace; item.name &rbrace;&rbrace;</b></li>
+									<li>
+										Код ФККО (Только в КП на отходы): <b
+											>&lbrace;&lbrace; item.name &rbrace;&rbrace;</b
+										>
+									</li>
+									<li>Единица измерения: <b>&lbrace;&lbrace; item.unit &rbrace;&rbrace;</b></li>
+									<li>Цена: <b>&lbrace;&lbrace; item.price &rbrace;&rbrace;</b></li>
+									<li>Количество: <b>&lbrace;&lbrace; item.amount &rbrace;&rbrace;</b></li>
+									<li>Сумма: <b>&lbrace;&lbrace; item.sum &rbrace;&rbrace;</b></li>
+								</ul>
+							</li>
+							<li>
+								Автор документа: <b>&lbrace;&lbrace; author.name &rbrace;&rbrace;</b>
+							</li>
+						</ul>
+					</li>
+					<li>Сохранить документ.</li>
+					<li>Загрузить документ в систему.</li>
+				</ol>
+
+				<p>После загрузки документа он будет доступен для выбора при создании договора.</p>
+
+				<p>
+					Вы можете использовать документы <b>"Пример - КП на отходы"</b> и <b>"Пример - Общее КП"</b> в качестве
+					шаблоны, скопировав нужные части оттуда.
+				</p>
+			</Content>
+		</AccordionPanel>
+	</Accordion>
 	<div class="table-container">
 		<DataTable table$aria-label="Список шаблонов" style="width: 100%;">
 			<Head>
@@ -111,3 +185,10 @@
 <Snackbar bind:this={snackbar} />
 
 <OfferTplCreateDialog {token} bind:open={createDialogOpen} onCreate={updateOfferTpls} />
+
+<style>
+	.info-header {
+		display: flex;
+		align-items: center;
+	}
+</style>
