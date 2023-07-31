@@ -58,7 +58,7 @@ async def get_verified_admin(user: User) -> Optional[User]:
     Returns:
         Optional[User]: Admin user if it is admin, None otherwise.
     """
-    if user.role != UserRole.admin:
+    if user.role not in {UserRole.admin, UserRole.superuser}:
         return None
 
     return user
