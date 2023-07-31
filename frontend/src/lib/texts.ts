@@ -5,7 +5,9 @@ export function userRoleName(role: UserRole): string {
 		case UserRole.Admin:
 			return 'Администратор';
 		case UserRole.Employee:
-			return 'Сотрудник';
+            return 'Сотрудник';
+        case UserRole.Superuser:
+            return 'Аккаунт разработчика';
         default:
             return 'Неизвестно';
 	}

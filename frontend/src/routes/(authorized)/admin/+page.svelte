@@ -11,7 +11,7 @@
 	export let data;
 </script>
 
-{#if $user.role == UserRole.Admin}
+{#if $user.role == UserRole.Admin || $user.role == UserRole.Superuser}
     <div class="panels-container">
         <UsersPanel token={data.token} />
         <CompaniesPanel token={data.token} />

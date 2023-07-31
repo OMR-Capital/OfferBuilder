@@ -25,7 +25,7 @@
 					<Label>Мой профиль</Label>
 				</Button>
 			{/if}
-			{#if $user.role == UserRole.Admin && $page.route.id != '/(authorized)/admin'}
+			{#if ($user.role == UserRole.Admin || $user.role == UserRole.Superuser) && $page.route.id != '/(authorized)/admin'}
 				<Button href="/admin">
 					<Label>Управление</Label>
 				</Button>
