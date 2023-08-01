@@ -96,8 +96,7 @@
 <style>
 	.build-btn-container {
 		display: flex;
-		flex-direction: row;
-		align-items: center;
+		flex-wrap: wrap;
 		gap: 2rem;
 	}
 
@@ -105,5 +104,12 @@
 		width: 2px;
 		height: 2rem;
 		background-color: rgba(0, 0, 0, 0.12);
+	}
+
+	@media (max-width: 600px) {
+		.btns-splitter {
+			height: 2px;
+			width: 100%;
+		}
 	}
 </style>
