@@ -94,18 +94,14 @@
 	}
 
 	.auth-content {
-		display: flex;
+        display: flex;
 		flex-direction: column;
 		align-items: center;
 		width: min(20rem, 100vw);
+        gap: 2rem;
 	}
 
 	.auth-content__item {
-		margin-bottom: 2rem;
-		width: 100%;
-	}
-
-	.auth-content__item:last-child {
-		margin-bottom: 0;
+        width: 100%;
 	}
 </style>

@@ -15,13 +15,12 @@
 
 <style>
     .panel-title {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 
 	.content-container {
 		display: flex;
 		flex-direction: column;
 		gap: 2rem;
-		padding: 1rem;
 	}
 </style>
