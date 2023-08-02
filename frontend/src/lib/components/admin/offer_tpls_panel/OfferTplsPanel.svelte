@@ -56,19 +56,19 @@
 </script>
 
 <Panel title="Шаблоны договоров">
-    <Accordion>
-        <AccordionPanel>
-            <Header>
-                <div class="info-header">
-                    <Icon class="material-icons">info_outlined</Icon>
-                    Инструкция по созданию шаблонов
-                </div>
-            </Header>
-            <Content>
-                <GuideContent />
-            </Content>
-        </AccordionPanel>
-    </Accordion>
+	<Accordion>
+		<AccordionPanel>
+			<Header>
+				<div class="info-header">
+					<Icon class="material-icons info-header-icon">info_outlined</Icon>
+					Инструкция по созданию шаблонов
+				</div>
+			</Header>
+			<Content>
+				<GuideContent />
+			</Content>
+		</AccordionPanel>
+	</Accordion>
 	<div class="table-container">
 		<DataTable table$aria-label="Список шаблонов" style="width: 100%;">
 			<Head>
@@ -130,5 +130,11 @@
 	.info-header {
 		display: flex;
 		align-items: center;
+	}
+
+	@media (max-width: 600px) {
+		:global(.info-header-icon) {
+			display: none;
+		}
 	}
 </style>
