@@ -6,9 +6,9 @@
 	import { Label } from '@smui/common';
 	import HelperText from '@smui/select/helper-text';
 	import Textfield from '@smui/textfield';
-	import FileLoader from '../common/FileLoader.svelte';
-	import Dialog from '../common/dialog/Dialog.svelte';
-	import DialogBlock from '../common/dialog/DialogBlock.svelte';
+	import FileLoader from '../../common/FileLoader.svelte';
+	import Dialog from '../../common/dialog/Dialog.svelte';
+	import DialogBlock from '../../common/dialog/DialogBlock.svelte';
 
 	export let token: string;
 	export let open: boolean;

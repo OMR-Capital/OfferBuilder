@@ -6,7 +6,7 @@
 	import CompaniesPanel from '$lib/components/admin/CompaniesPanel.svelte';
 	import WastesPanel from '$lib/components/admin/WastesPanel.svelte';
 	import WorksPanel from '$lib/components/admin/WorksPanel.svelte';
-	import OfferTplsPanel from '$lib/components/admin/OfferTplsPanel.svelte';
+	import OfferTplsPanel from '$lib/components/admin/offer_tpls_panel/OfferTplsPanel.svelte';
 
 	export let data;
 </script>
