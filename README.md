@@ -16,7 +16,7 @@ Additionally, this project can serve as a reference for running full-stack appli
 
 ### Demo
 
-You can install your own instance from [Discovery](https://deta.space/discovery). After installing, you will need to set up an admin password and API token in the `Settings` section.
+You can install your own instance from [Discovery](https://deta.space/discovery/r/qtinn3ezemoduasx). After installing, you will need to set up an admin password and API tokens in the `Settings` section from the Canvas.
 
 ### Deployment
 
