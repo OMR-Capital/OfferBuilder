@@ -71,7 +71,7 @@
 				>
 					<CircularLoader size="small" />
 				</Text>
-				<Text slot="error">ИНН должен содержать только цифры</Text>
+				<Text slot="error">ИНН должен содержать 10 или 12 цифр</Text>
 				<Text slot="no-matches">Ничего не найдено</Text>
 			</Autocomplete>
 		</div>

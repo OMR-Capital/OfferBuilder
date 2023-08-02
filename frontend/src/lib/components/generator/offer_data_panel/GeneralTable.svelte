@@ -16,7 +16,7 @@
 	export let generalRows: GeneralRow[] = [];
 	$: nextRowNumber = generalRows.length + 1;
 
-    export let totalPrice: number = 0;
+	export let totalPrice: number = 0;
 	$: {
 		totalPrice = 0;
 		for (const row of generalRows) {
@@ -91,20 +91,20 @@
 				slot="progress"
 			/>
 		</DataTable>
-	</div>
-	<div class="footer">
-		<Button
-			variant="outlined"
-			on:click={() => {
-				addRowDialogOpen = true;
-			}}
-		>
-			<Icon class="material-icons">add_circle_outlined</Icon>
-			Добавить элемент
-		</Button>
-        <div class="offer-total-container">
+		<div class="offer-total-container">
 			<b>Итого:</b>
-			<span>{totalPrice} руб.</span>
+			<span>{totalPrice} руб</span>
+		</div>
+		<div>
+			<Button
+				variant="outlined"
+				on:click={() => {
+					addRowDialogOpen = true;
+				}}
+			>
+				<Icon class="material-icons">add_circle_outlined</Icon>
+				Добавить элемент
+			</Button>
 		</div>
 	</div>
 </div>
@@ -133,11 +133,13 @@
 		flex-grow: 1;
 	}
 
-    .footer {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-    }
+	.offer-total-container {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-end;
+		align-items: center;
+		gap: 1rem;
+		margin-right: 1rem;
+		height: 2rem;
+	}
 </style>

@@ -27,6 +27,12 @@
 		flex-direction: column;
 		gap: 2rem;
 		padding: 2rem;
-		width: min(30rem, 100vw);
+		width: 30rem;
 	}
+
+    @media (max-width: 600px) {
+        .dialog-content {
+            width: auto;
+        }
+    }
 </style>

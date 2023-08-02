@@ -53,4 +53,10 @@
 	.page-content {
 		padding: 4rem;
 	}
+
+    @media (max-width: 600px) {
+        .page-content {
+            padding: 0;
+        }
+    }
 </style>
