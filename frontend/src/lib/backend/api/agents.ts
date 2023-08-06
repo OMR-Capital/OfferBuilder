@@ -1,6 +1,5 @@
-import { BaseAPI } from '../base_api';
+import { BaseAPI, type Result } from '../base_api';
 import type { Agent } from '../models/agents';
-import type { Result } from '../utils';
 
 interface AgentResponse {
 	agent: Agent;

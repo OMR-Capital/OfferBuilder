@@ -1,6 +1,5 @@
-import { BaseAPI } from '../base_api';
+import { BaseAPI, type Result } from '../base_api';
 import type { Work } from '../models/works';
-import type { Result } from '../utils';
 
 interface WorkResponse {
 	work: Work;

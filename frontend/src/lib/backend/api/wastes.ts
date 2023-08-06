@@ -1,6 +1,5 @@
-import { BaseAPI } from '../base_api';
+import { BaseAPI, type Result } from '../base_api';
 import type { Waste } from '../models/wastes';
-import type { Result } from '../utils';
 
 interface WasteResponse {
 	waste: Waste;
