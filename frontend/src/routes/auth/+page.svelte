@@ -1,5 +1,5 @@
 <script>
-	import AuthForm from '$lib/components/auth/AuthForm.svelte';
+	import AuthForm from '$lib/components/auth/AuthCard.svelte';
 
 	export let data;
 </script>
