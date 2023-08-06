@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { auth } from '$lib/backend/utils';
+	import { BaseAPI } from '$lib/backend/base_api';
 	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 	import Button, { Label } from '@smui/button';
 	import Card, { Content } from '@smui/card';
@@ -19,7 +19,7 @@
 
 		authorizing = true;
 		try {
-			const { token } = await auth(username, password);
+			const { token } = await BaseAPI.auth(username, password);
 			if (token) {
 				authFailed = false;
 				const expires = new Date(new Date().getTime() + tokenExpireMinutes * 60 * 1000);
@@ -37,52 +37,52 @@
 
 <Card padded>
 	<Content>
-        <form on:submit|preventDefault={login}>
-            <div class="auth-content">
-                <div class="auth-content__item auth-title">
-                    <h6>Авторизация</h6>
-                </div>
-                <div class="auth-content__item">
-                    <Textfield
-                        label="Логин"
-                        style="width: 100%;"
-                        invalid={authFailed}
-                        type="text"
-                        input$name="username"
-                        input$autocomplete="username"
-                        required
-                        bind:value={username}
-                        on:input={() => (authFailed = false)}
-                    />
-                </div>
-                <div class="auth-content__item">
-                    <Textfield
-                        label="Пароль"
-                        style="width: 100%;"
-                        invalid={authFailed}
-                        type="password"
-                        input$name="password"
-                        input$autocomplete="current-password"
-                        required
-                        bind:value={password}
-                        on:input={() => (authFailed = false)}
-                    >
-                        <HelperText persistent slot="helper">
-                            {authFailed ? 'Неверный логин или пароль' : ''}
-                        </HelperText>
-                    </Textfield>
-                </div>
-                <div class="auth-content__item">
-                    {#if authorizing}
-                        <CircularLoader />
-                    {:else}
-                        <Button variant="outlined" type="submit" style="width: 100%;">
-                            <Label>Войти</Label>
-                        </Button>
-                    {/if}
-                </div>
-            </div>
-        </form>
+		<form on:submit|preventDefault={login}>
+			<div class="auth-content">
+				<div class="auth-content__item auth-title">
+					<h6>Авторизация</h6>
+				</div>
+				<div class="auth-content__item">
+					<Textfield
+						label="Логин"
+						style="width: 100%;"
+						invalid={authFailed}
+						type="text"
+						input$name="username"
+						input$autocomplete="username"
+						required
+						bind:value={username}
+						on:input={() => (authFailed = false)}
+					/>
+				</div>
+				<div class="auth-content__item">
+					<Textfield
+						label="Пароль"
+						style="width: 100%;"
+						invalid={authFailed}
+						type="password"
+						input$name="password"
+						input$autocomplete="current-password"
+						required
+						bind:value={password}
+						on:input={() => (authFailed = false)}
+					>
+						<HelperText persistent slot="helper">
+							{authFailed ? 'Неверный логин или пароль' : ''}
+						</HelperText>
+					</Textfield>
+				</div>
+				<div class="auth-content__item">
+					{#if authorizing}
+						<CircularLoader />
+					{:else}
+						<Button variant="outlined" type="submit" style="width: 100%;">
+							<Label>Войти</Label>
+						</Button>
+					{/if}
+				</div>
+			</div>
+		</form>
 	</Content>
 </Card>
 
@@ -94,14 +94,14 @@
 	}
 
 	.auth-content {
-        display: flex;
+		display: flex;
 		flex-direction: column;
 		align-items: center;
 		width: min(20rem, 100vw);
-        gap: 2rem;
+		gap: 2rem;
 	}
 
 	.auth-content__item {
-        width: 100%;
+		width: 100%;
 	}
 </style>
