@@ -34,9 +34,7 @@ async def authorize_user(login: str, password: str) -> Optional[User]:
         return root_user
 
     # ODetaM queries are not typed properly, so we need to use ignore
-    users_with_login = await UserInDB.query(
-        UserInDB.login == login,  # type: ignore
-    )
+    users_with_login = await UserInDB.query(UserInDB.login == login)
     if not users_with_login:
         return None
 

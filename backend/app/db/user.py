@@ -8,7 +8,7 @@ from pydantic import BaseConfig, validator
 from app.models.user import User
 
 
-class UserInDB(User, AsyncDetaModel):
+class UserInDB(User, AsyncDetaModel):  # type: ignore
     """ORM model for user.
 
     User id is used as key.

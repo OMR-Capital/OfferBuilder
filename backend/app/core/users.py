@@ -74,7 +74,5 @@ async def check_login(login: str) -> bool:
         bool: True if login is already taken, False otherwise.
     """
     # ODetaM queries are not typed properly, so we need to use ignore
-    users_with_same_login = await UserInDB.query(
-        UserInDB.login == login,  # type: ignore
-    )
+    users_with_same_login = await UserInDB.query(UserInDB.login == login)
     return not bool(users_with_same_login)

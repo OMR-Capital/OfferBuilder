@@ -10,7 +10,7 @@ from pydantic import BaseConfig, validator
 from app.models.offer import Offer
 
 
-class OfferInDB(Offer, AsyncDetaModel):
+class OfferInDB(Offer, AsyncDetaModel):  # type: ignore
     """ORM model for generated offer."""
 
     class Config(BaseConfig):
@@ -40,4 +40,4 @@ class OfferInDB(Offer, AsyncDetaModel):
             _type_: _description_
         """
         self.modified_at = datetime.now()
-        return await super().save()
+        return await super().save()  # type: ignore

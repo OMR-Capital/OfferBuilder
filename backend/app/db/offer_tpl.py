@@ -9,7 +9,7 @@ from pydantic import BaseConfig, validator
 from app.models.offer_tpl import OfferTemplate
 
 
-class OfferTemplateInDB(OfferTemplate, AsyncDetaModel):
+class OfferTemplateInDB(OfferTemplate, AsyncDetaModel):  # type: ignore
     """ORM model for template."""
 
     class Config(BaseConfig):

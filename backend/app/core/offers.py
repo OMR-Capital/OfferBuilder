@@ -25,7 +25,8 @@ def get_offers_drive() -> _Drive:
         _Drive: Offer templates drive
     """
     # Deta is untyped, so we need to ignore type errors
-    return Drive('offers')  # type: ignore
+    drive: _Drive = Drive('offers')
+    return drive  # noqa: WPS331
 
 
 def get_offer_file(
