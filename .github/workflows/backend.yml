@@ -1,0 +1,38 @@
+name: Backend CI
+
+on:
+    push:
+        branches: [master]
+    pull_request:
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./backend
+        steps:
+            - uses: actions/checkout@v3
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v4
+              with:
+                  python-version: 3.9
+
+            - name: Install poetry
+              run: |
+                  curl -sSL "https://install.python-poetry.org" | python
+
+                  # Adding `poetry` to `$PATH`:
+                  echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+
+            - name: Install dependencies
+              run: |
+                  poetry config virtualenvs.in-project true
+                  poetry run pip install -U pip
+                  poetry install
+
+            - name: Run checks
+              run: |
+                  poetry run flake8 app
+                  poetry run mypy app
