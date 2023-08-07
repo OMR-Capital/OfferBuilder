@@ -9,7 +9,7 @@ from pydantic import BaseConfig, validator
 from app.models.company import Company
 
 
-class CompanyInDB(Company, AsyncDetaModel):
+class CompanyInDB(Company, AsyncDetaModel):  # type: ignore
     """ORM model for company."""
 
     class Config(BaseConfig):

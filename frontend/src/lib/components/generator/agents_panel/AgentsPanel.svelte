@@ -1,21 +1,18 @@
 <script lang="ts">
 	import { AgentsAPI } from '$lib/backend/api/agents';
 	import { normalizeINN, type Agent } from '$lib/backend/models/agents';
-	import Autocomplete from '@smui-extra/autocomplete';
+	import Panel from '$lib/components/common/Panel.svelte';
 	import { Label } from '@smui/common';
-	import { Text } from '@smui/list';
 	import Textfield from '@smui/textfield';
-	import CircularLoader from '../common/CircularLoader.svelte';
-	import Panel from '../common/Panel.svelte';
-	import Snackbar from '../common/Snackbar.svelte';
+	import AgentSearchLine from './AgentSearchLine.svelte';
 
 	export let token: string;
 	export let agent: Agent = { inn: '', fullname: '', shortname: '', management: '' };
 
 	const agentsApi = new AgentsAPI(token);
 
-	let selectedAgent: Agent | null = null;
-	$: updateAgent(selectedAgent);
+	let foundAgent: Agent | null = null;
+	$: updateAgent(foundAgent);
 
 	let searchCounter = 0;
 
@@ -47,8 +44,6 @@
 			agent = newAgent;
 		}
 	}
-
-	let snackbar: Snackbar;
 </script>
 
 <Panel title="Контр-агент">
@@ -57,23 +52,7 @@
 			<div class="block-title">
 				<Label>Найдите по ИНН</Label>
 			</div>
-			<Autocomplete
-				label="ИНН"
-				style="width: 100%;"
-				textfield$style="width: 100%;"
-				search={searchAgent}
-				getOptionLabel={getAgentLabel}
-				bind:value={selectedAgent}
-			>
-				<Text
-					slot="loading"
-					style="display: flex; width: 100%; justify-content: flex-start; align-items: center;"
-				>
-					<CircularLoader size="small" />
-				</Text>
-				<Text slot="error">ИНН должен содержать 10 или 12 цифр</Text>
-				<Text slot="no-matches">Ничего не найдено</Text>
-			</Autocomplete>
+			<AgentSearchLine bind:selectedAgent={foundAgent} {token} />
 		</div>
 		<div class="agent-input-container">
 			<div class="block-title">
@@ -91,8 +70,6 @@
 		</div>
 	</div>
 </Panel>
-
-<Snackbar bind:this={snackbar} />
 
 <style>
 	.agent-panel {

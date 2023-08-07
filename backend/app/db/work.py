@@ -9,7 +9,7 @@ from pydantic import BaseConfig, validator
 from app.models.work import Work
 
 
-class WorkInDB(Work, AsyncDetaModel):
+class WorkInDB(Work, AsyncDetaModel):  # type: ignore
     """ORM model for work."""
 
     class Config(BaseConfig):

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { UsersAPI } from '$lib/backend/api/users';
-	import PageWithNavbar from '$lib/components/PageWithNavbar.svelte';
+	import PageWithNavbar from '$lib/components/layout/PageWithNavbar.svelte';
 	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 	import { user } from '$lib/stores';
 	import { redirect } from '@sveltejs/kit';

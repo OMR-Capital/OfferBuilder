@@ -3,8 +3,8 @@
 	import { UserRole } from '$lib/backend/models/users';
 	import IconButton from '$lib/components/common/IconButton.svelte';
 	import { user } from '$lib/stores';
-	import Button, { Label } from '@smui/button';
 	import TopAppBar, { AutoAdjust, Row, Section } from '@smui/top-app-bar';
+	import NavLink from './NavLink.svelte';
 
 	let topAppBar: TopAppBar;
 </script>
@@ -16,19 +16,13 @@
 		</Section>
 		<Section align="end" toolbar>
 			{#if $page.route.id != '/(authorized)/generator'}
-				<Button href="/generator">
-					<Label>Генератор</Label>
-				</Button>
+				<NavLink href="/generator" label="Генератор" />
 			{/if}
 			{#if $page.route.id != '/(authorized)/me'}
-				<Button href="/me">
-					<Label>Мой профиль</Label>
-				</Button>
+				<NavLink href="/me" label="Профиль" />
 			{/if}
 			{#if ($user.role == UserRole.Admin || $user.role == UserRole.Superuser) && $page.route.id != '/(authorized)/admin'}
-				<Button href="/admin">
-					<Label>Управление</Label>
-				</Button>
+				<NavLink href="/admin" label="Управление" />
 			{/if}
 		</Section>
 	</Row>
@@ -54,9 +48,9 @@
 		padding: 4rem;
 	}
 
-    @media (max-width: 600px) {
-        .page-content {
-            padding: 0;
-        }
-    }
+	@media (max-width: 600px) {
+		.page-content {
+			padding: 0;
+		}
+	}
 </style>

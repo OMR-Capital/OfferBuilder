@@ -1,13 +1,12 @@
-import { BaseAPI } from '../base_api';
+import { BaseAPI, type Result } from '../base_api';
 import type { User } from '../models/users';
-import type { Result } from '../utils';
 
 interface UserResponse {
 	user: User;
 }
 
 interface UsersResponse {
-    users: User[];
+	users: User[];
 }
 
 interface UserUpdate {

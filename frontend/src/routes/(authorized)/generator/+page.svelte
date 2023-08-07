@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { OfferTpl } from '$lib/backend/models/offer_tpls';
-	import AgentsPanel from '$lib/components/generator/AgentsPanel.svelte';
+	import AgentsPanel from '$lib/components/generator/agents_panel/AgentsPanel.svelte';
 	import BuildOfferPanel from '$lib/components/generator/BuildOfferPanel.svelte';
 	import CompaniesPanel from '$lib/components/generator/CompaniesPanel.svelte';
 	import OfferTplsPanel from '$lib/components/generator/OfferTplsPanel.svelte';

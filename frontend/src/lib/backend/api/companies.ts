@@ -1,6 +1,5 @@
-import { BaseAPI } from '../base_api';
+import { BaseAPI, type Result } from '../base_api';
 import type { Company } from '../models/companies';
-import type { Result } from '../utils';
 
 interface CompanyResponse {
 	company: Company;

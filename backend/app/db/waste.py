@@ -8,7 +8,7 @@ from pydantic import BaseConfig, validator
 from app.models.waste import Waste
 
 
-class WasteInDB(Waste, AsyncDetaModel):
+class WasteInDB(Waste, AsyncDetaModel):  # type: ignore
     """ORM model for waste."""
 
     class Config(BaseConfig):
