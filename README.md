@@ -1,6 +1,7 @@
 # Offer Builder
 
 [![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg)](https://github.com/wemake-services/wemake-python-styleguide)
+[![Actions Status](https://github.com/OMR-Capital/OfferBuilder/workflows/Backend%20CI/badge.svg)](https://github.com/OMR-Capital/OfferBuilder/actions)
 
 ## Description
 
