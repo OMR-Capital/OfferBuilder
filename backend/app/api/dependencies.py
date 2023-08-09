@@ -13,7 +13,11 @@ from app.core.agents import AgentsService
 from app.core.companies import CompaniesService
 from app.core.offer_tpls import OfferTemplatesService
 from app.core.offers import OffersService
-from app.core.users import get_authorized_user, get_verified_admin
+from app.core.users import (
+    UsersService,
+    get_authorized_user,
+    get_verified_admin,
+)
 from app.models.user import User
 
 # Authorization form in Swagger UI doesn't work properly under Deta proxy
@@ -107,3 +111,12 @@ def get_offers_service() -> OffersService:
         OffersService: Offers service.
     """
     return OffersService()
+
+
+def get_users_service() -> UsersService:
+    """Get users service.
+
+    Returns:
+        UsersService: Users service.
+    """
+    return UsersService()
