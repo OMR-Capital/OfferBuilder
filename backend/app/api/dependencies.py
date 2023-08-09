@@ -11,6 +11,8 @@ from app.api.exceptions.auth import Unauthorized
 from app.api.exceptions.users import AdminRightsRequired
 from app.core.agents import AgentsService
 from app.core.companies import CompaniesService
+from app.core.offer_tpls import OfferTemplatesService
+from app.core.offers import OffersService
 from app.core.users import get_authorized_user, get_verified_admin
 from app.models.user import User
 
@@ -87,3 +89,21 @@ def get_companies_service() -> CompaniesService:
         CompaniesService: Companies service.
     """
     return CompaniesService()
+
+
+def get_offer_tpls_service() -> OfferTemplatesService:
+    """Get offer templates service.
+
+    Returns:
+        OfferTemplatesService: Offer templates service.
+    """
+    return OfferTemplatesService()
+
+
+def get_offers_service() -> OffersService:
+    """Get offers service.
+
+    Returns:
+        OffersService: Offers service.
+    """
+    return OffersService()

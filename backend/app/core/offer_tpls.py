@@ -1,139 +1,224 @@
 """Offer templates utilities."""
 
 from io import BytesIO
-from typing import Any, Optional, Union
+from typing import Optional
 
 from deta import Drive
-# Deta has unconventional import style, so we need to use noqa here
-from deta.drive import _Drive  # noqa: WPS450
 from docxtpl.template import DocxTemplate
-from jinja2.exceptions import TemplateRuntimeError
 
-from app.api.exceptions.offer_tpls import IncorrectOfferTemplateContext
 from app.core.deta import BytesIterator
 from app.core.docx import DocFormat, UnsupportedFileFormat, convert_to_pdf
+from app.core.models import generate_id
+from app.db.offer_tpl import OfferTemplateInDB
+from app.models.offer_tpl import OfferTemplate
 
 
-def get_offer_tpls_drive() -> _Drive:
-    """Get offer templates drive.
+class OfferTemplateNotFoundError(Exception):
+    """Offer template not found."""
 
-    Currently, it is `offer_tpls` drive.
 
-    Returns:
-        _Drive: Offer templates drive
+class BadOfferTemplateFileError(Exception):
+    """Offer template file is bad."""
+
+
+class IncorrectOfferTemplateContextError(Exception):
+    """Incorrect offer template context."""
+
+
+class OfferTemplatesService(object):
+    """Offer templates service.
+
+    Provides methods for working with offer templates.
     """
-    drive: _Drive = Drive('offer_tpls')
-    return drive  # noqa: WPS331
 
+    def __init__(self) -> None:
+        """Initialize service."""
+        self.drive = Drive('offer_tpls')
 
-def get_offer_tpl_file(
-    drive: _Drive,
-    offer_tpl_id: str,
-    file_format: DocFormat,
-) -> Optional[BytesIterator]:
-    """Get offer template file data.
+    async def get_offer_tpls(self) -> list[OfferTemplate]:
+        """Get offer templates.
 
-    Files stored as docx. Other formats are converted from docx.
+        Returns:
+            list[OfferTemplate]: Offer templates
+        """
+        db_offer_tpls = await OfferTemplateInDB.get_all()
+        return [
+            OfferTemplate(**db_offer_tpl.dict())
+            for db_offer_tpl in db_offer_tpls
+        ]
 
-    Args:
-        drive (_Drive): Offer templates drive
-        offer_tpl_id (str): Offer template id
-        file_format (DocFormat): Offer template file format
+    async def get_offer_tpl(self, offer_tpl_id: str) -> OfferTemplate:
+        """Get offer template.
 
-    Raises:
-        FailConvertToPDF: If file format is `pdf` and conversion failed
-        UnsupportedFileFormat: If file format is unsupported
+        Args:
+            offer_tpl_id (str): Offer template id
 
-    Returns:
-        Optional[BytesIterator]: Offer template file data if found
-    """
-    stream_body = drive.get(offer_tpl_id)
-    if not stream_body:
-        return None
+        Raises:
+            OfferTemplateNotFoundError: If offer template is not found
 
-    if file_format == DocFormat.docx:
-        return BytesIterator(stream_body.iter_chunks())
+        Returns:
+            OfferTemplate: Offer template
+        """
+        db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
+        if not db_offer_tpl:
+            raise OfferTemplateNotFoundError()
 
-    if file_format == DocFormat.pdf:
-        file_stream = convert_to_pdf(stream_body.read())
-        return BytesIterator(file_stream)
+        return OfferTemplate(**db_offer_tpl.dict())
 
-    raise UnsupportedFileFormat()
+    async def create_offer_tpl(
+        self,
+        name: str,
+        offer_tpl_file: bytes,
+    ) -> OfferTemplate:
+        """Create offer template.
 
+        Args:
+            name (str): Offer template name
+            offer_tpl_file (bytes): Offer template file data
 
-def save_offer_tpl_file(
-    drive: _Drive,
-    offer_tpl_id: str,
-    offer_tpl_stream: Union[BytesIO, bytes],
-) -> None:
-    """Save offer template file data.
+        Raises:
+            BadOfferTemplateFileError: If offer template file is bad
 
-    Args:
-        drive (_Drive): Offer templates drive
-        offer_tpl_id (str): Offer template id
-        offer_tpl_stream (Union[BytesIO, bytes]): Offer template file data
-    """
-    drive.put(offer_tpl_id, offer_tpl_stream)
+        Returns:
+            OfferTemplate: Offer template
+        """
+        offer_tpl_id = generate_id()
+        await self._update_offer_tpl_file(offer_tpl_id, offer_tpl_file)
 
+        db_offer_tpl = OfferTemplateInDB(
+            offer_tpl_id=offer_tpl_id,
+            name=name,
+        )
+        await db_offer_tpl.save()
 
-def delete_offer_tpl_file(
-    drive: _Drive,
-    offer_tpl_id: str,
-) -> None:
-    """Delete offer template file data.
+        return OfferTemplate(**db_offer_tpl.dict())
 
-    Args:
-        drive (_Drive): Offer templates drive
-        offer_tpl_id (str): Offer template id
-    """
-    drive.delete(offer_tpl_id)
+    async def update_offer_tpl(
+        self,
+        offer_tpl_id: str,
+        name: Optional[str] = None,
+        offer_tpl_file: Optional[bytes] = None,
+    ) -> OfferTemplate:
+        """Update offer template.
 
+        Args:
+            offer_tpl_id (str): Offer template id
+            name (Optional[str]): Offer template name
+            offer_tpl_file (Optional[bytes]): Offer template file data
 
-def validate_offer_tpl_file(
-    offer_tpl_data: bytes,
-) -> bool:
-    """Validate offer template file data.
+        Raises:
+            OfferTemplateNotFoundError: If offer template is not found
+            BadOfferTemplateFileError: If offer template file is bad
 
-    Args:
-        offer_tpl_data (bytes): Offer template file data
+        Returns:
+            OfferTemplate: Offer template
+        """
+        db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
+        if not db_offer_tpl:
+            raise OfferTemplateNotFoundError()
 
-    Returns:
-        bool: True if offer template file data is valid, False otherwise
-    """
-    offer_tpl_stream = BytesIO(offer_tpl_data)
-    docx_tpl = DocxTemplate(offer_tpl_stream)
-    try:
-        docx_tpl.get_docx()
-    except Exception:
-        return False
+        db_offer_tpl.name = name or db_offer_tpl.name
+        await db_offer_tpl.save()
 
-    return True
+        if offer_tpl_file:
+            await self._update_offer_tpl_file(offer_tpl_id, offer_tpl_file)
 
+        return OfferTemplate(**db_offer_tpl.dict())
 
-def fill_offer_tpl(
-    offer_tpl_data: bytes,
-    context: dict[str, Any],
-) -> BytesIO:
-    """Fill offer template file data with context.
+    async def delete_offer_tpl(self, offer_tpl_id: str) -> OfferTemplate:
+        """Delete offer template.
 
-    Args:
-        offer_tpl_data (bytes): Offer template file data
-        context (dict[str, Any]): Template data
+        Args:
+            offer_tpl_id (str): Offer template id
 
-    Raises:
-        IncorrectOfferTemplateContext: If context is incorrect
+        Raises:
+            OfferTemplateNotFoundError: If offer template is not found
 
-    Returns:
-        BytesIO: Filled offer template file data
-    """
-    offer_tpl_stream = BytesIO(offer_tpl_data)
-    docx_tpl = DocxTemplate(offer_tpl_stream)
-    try:
-        docx_tpl.render(context)
-    except TemplateRuntimeError:
-        raise IncorrectOfferTemplateContext()
+        Returns:
+            OfferTemplate: Deleted offer template
+        """
+        db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
+        if not db_offer_tpl:
+            raise OfferTemplateNotFoundError()
 
-    filled_offer_tpl_stream = BytesIO()
-    docx_tpl.save(filled_offer_tpl_stream)
-    filled_offer_tpl_stream.seek(0)
-    return filled_offer_tpl_stream
+        await db_offer_tpl.delete()
+        self.drive.delete(offer_tpl_id)
+
+        return OfferTemplate(**db_offer_tpl.dict())
+
+    async def get_offer_tpl_file(
+        self,
+        offer_tpl_id: str,
+        file_format: DocFormat,
+    ) -> BytesIterator:
+        """Get offer template file data.
+
+        Args:
+            offer_tpl_id (str): Offer template id
+            file_format (DocFormat): Offer template file format
+
+        Raises:
+            OfferTemplateNotFoundError: If offer template is not found
+            UnsupportedFileFormat: If file format is unsupported
+            FailedToConvertToPdf: If failed to convert to pdf
+
+        Returns:
+            BytesIterator: Offer template file data
+        """
+        stream_body = self.drive.get(offer_tpl_id)
+        if not stream_body:
+            raise OfferTemplateNotFoundError()
+
+        if file_format == DocFormat.docx:
+            return BytesIterator(stream_body.iter_chunks())
+
+        if file_format == DocFormat.pdf:
+            file_stream = convert_to_pdf(stream_body.read())
+            return BytesIterator(file_stream)
+
+        raise UnsupportedFileFormat()
+
+    async def _update_offer_tpl_file(
+        self,
+        offer_tpl_id: str,
+        offer_tpl_data: bytes,
+    ) -> None:
+        """Update offer template file data.
+
+        Args:
+            offer_tpl_id (str): Offer template id
+            offer_tpl_data (bytes): Offer template file data
+
+        Raises:
+            BadOfferTemplateFileError: \
+                Raised when the offer template file is bad.
+            IncorrectOfferTemplateFile: \
+                Raised when the offer template file is incorrect.
+            OfferTemplateUploadFailed: \
+                Raised when the offer template upload failed.
+        """
+        if not self._validate_offer_tpl_file(offer_tpl_data):
+            raise BadOfferTemplateFileError()
+
+        self.drive.put(offer_tpl_id, offer_tpl_data)
+
+    async def _validate_offer_tpl_file(
+        self,
+        offer_tpl_data: bytes,
+    ) -> bool:
+        """Validate offer template file data.
+
+        Args:
+            offer_tpl_data (bytes): Offer template file data
+
+        Returns:
+            bool: True if offer template file data is valid, False otherwise
+        """
+        offer_tpl_stream = BytesIO(offer_tpl_data)
+        docx_tpl = DocxTemplate(offer_tpl_stream)
+        try:
+            docx_tpl.get_docx()
+        except Exception:
+            return False
+
+        return True
