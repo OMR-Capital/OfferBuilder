@@ -63,16 +63,22 @@ class WastesService(object):
             name (str): Waste name.
             fkko_code (str): FKKO code.
 
+        Raises:
+            BadFKKOCodeError: Raised when the FKKO code is invalid.
+
         Returns:
             Waste: Created waste.
         """
+        if not self._validate_fkko_code(fkko_code):
+            raise BadFKKOCodeError()
+
         waste_id = generate_id()
         db_waste = WasteInDB(
             waste_id=waste_id,
             name=name,
             fkko_code=fkko_code,
         )
-        await db_waste.create()
+        await db_waste.save()
         return Waste(**db_waste.dict())
 
     async def update_waste(

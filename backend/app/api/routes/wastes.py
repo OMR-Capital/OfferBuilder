@@ -9,14 +9,14 @@ from fastapi import APIRouter, Depends
 
 from app.api.dependencies.auth import get_admin, get_current_user
 from app.api.dependencies.wastes import get_wastes_service
-from app.api.exceptions.wastes import WasteNotFound
+from app.api.exceptions.wastes import BadFKKOCode, WasteNotFound
 from app.api.schemes.wastes import (
     WasteCreate,
     WasteListResponse,
     WasteResponse,
     WasteUpdate,
 )
-from app.core.wastes import WasteNotFoundError, WastesService
+from app.core.wastes import BadFKKOCodeError, WasteNotFoundError, WastesService
 from app.models.user import User
 
 router = APIRouter(prefix='/wastes', tags=['wastes'])
@@ -80,13 +80,20 @@ async def create_waste(
         admin (User): Current user must be an admin.
         service (WastesService): Wastes service.
 
+    Raises:
+        BadFKKOCode: Raised when the FKKO code is invalid.
+
     Returns:
         WasteResponse: Created waste.
     """
-    waste = await service.create_waste(
-        name=waste_data.name,
-        fkko_code=waste_data.fkko_code,
-    )
+    try:
+        waste = await service.create_waste(
+            name=waste_data.name,
+            fkko_code=waste_data.fkko_code,
+        )
+    except BadFKKOCodeError:
+        raise BadFKKOCode()
+
     return WasteResponse(waste=waste)
 
 
