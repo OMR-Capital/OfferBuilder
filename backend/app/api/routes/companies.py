@@ -7,11 +7,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.api.dependencies import (
-    get_admin,
-    get_companies_service,
-    get_current_user,
-)
+from app.api.dependencies.auth import get_admin, get_current_user
+from app.api.dependencies.companies import get_companies_service
 from app.api.exceptions.companies import CompanyNotFound
 from app.api.schemes.companies import (
     CompanyCreate,

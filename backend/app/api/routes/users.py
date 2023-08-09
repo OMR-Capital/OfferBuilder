@@ -7,7 +7,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.api.dependencies import get_admin, get_current_user, get_users_service
+from app.api.dependencies.auth import get_admin, get_current_user
+from app.api.dependencies.users import get_users_service
 from app.api.exceptions.users import LoginAlreadyExists, UserNotFound
 from app.api.schemes.users import (
     MyUserUpdate,

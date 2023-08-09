@@ -1,4 +1,4 @@
-"""API dependencies."""
+"""Auth dependencies."""
 
 
 from typing import Annotated
@@ -9,15 +9,7 @@ from jose import JWTError
 
 from app.api.exceptions.auth import Unauthorized
 from app.api.exceptions.users import AdminRightsRequired
-from app.core.agents import AgentsService
-from app.core.companies import CompaniesService
-from app.core.offer_tpls import OfferTemplatesService
-from app.core.offers import OffersService
-from app.core.users import (
-    UsersService,
-    get_authorized_user,
-    get_verified_admin,
-)
+from app.core.users import get_authorized_user, get_verified_admin
 from app.models.user import User
 
 # Authorization form in Swagger UI doesn't work properly under Deta proxy
@@ -75,48 +67,3 @@ async def get_admin(
         raise AdminRightsRequired()
 
     return admin
-
-
-def get_agent_service() -> AgentsService:
-    """Get agents service.
-
-    Returns:
-        AgentsService: Agents service.
-    """
-    return AgentsService()
-
-
-def get_companies_service() -> CompaniesService:
-    """Get companies service.
-
-    Returns:
-        CompaniesService: Companies service.
-    """
-    return CompaniesService()
-
-
-def get_offer_tpls_service() -> OfferTemplatesService:
-    """Get offer templates service.
-
-    Returns:
-        OfferTemplatesService: Offer templates service.
-    """
-    return OfferTemplatesService()
-
-
-def get_offers_service() -> OffersService:
-    """Get offers service.
-
-    Returns:
-        OffersService: Offers service.
-    """
-    return OffersService()
-
-
-def get_users_service() -> UsersService:
-    """Get users service.
-
-    Returns:
-        UsersService: Users service.
-    """
-    return UsersService()

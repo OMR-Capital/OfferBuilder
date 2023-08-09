@@ -1,25 +1,16 @@
 """Offers templates API."""
 
-from io import BytesIO
 from typing import Annotated
 
-# Deta has unconventional import style, so we need to use noqa here
-from deta.drive import _Drive  # noqa: WPS450
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
-from app.api.dependencies import (
-    get_admin,
-    get_current_user,
-    get_offer_tpls_service,
-    get_offers_service,
-)
-from app.api.exceptions.docx import FailConvertToPDF
+from app.api.dependencies.auth import get_admin, get_current_user
+from app.api.dependencies.offers import get_offers_service
+from app.api.dependencies.offer_tpls import get_offer_tpls_service
 from app.api.exceptions.offer_tpls import (
     BadOfferTemplateFile,
-    IncorrectOfferTemplateFile,
     OfferTemplateNotFound,
-    OfferTemplateUploadFailed,
 )
 from app.api.schemes.offer_tpls import (
     BuildedOfferResponse,
@@ -29,7 +20,6 @@ from app.api.schemes.offer_tpls import (
     OfferTemplateResponse,
     OfferTemplateUpdate,
 )
-from app.core.deta import BytesIterator
 from app.core.docx import DocFormat, decode_base64, get_media_type
 from app.core.offer_tpls import (
     BadOfferTemplateFileError,
