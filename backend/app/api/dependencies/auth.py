@@ -9,6 +9,7 @@ from jose import JWTError
 
 from app.api.exceptions.auth import Unauthorized
 from app.api.exceptions.users import AdminRightsRequired
+from app.core.auth import AuthService
 from app.core.users import get_authorized_user, get_verified_admin
 from app.models.user import User
 
@@ -67,3 +68,12 @@ async def get_admin(
         raise AdminRightsRequired()
 
     return admin
+
+
+def get_auth_service() -> AuthService:
+    """Get auth service.
+
+    Returns:
+        AuthService: Auth service instance.
+    """
+    return AuthService()
