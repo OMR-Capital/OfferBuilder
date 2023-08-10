@@ -17,7 +17,12 @@ from app.api.schemes.wastes import (
     WasteUpdate,
 )
 from app.core.pagination import PaginationParams
-from app.core.wastes import BadFKKOCodeError, WasteNotFoundError, WastesService
+from app.core.wastes import (
+    BadFKKOCodeError,
+    WasteNotFoundError,
+    WastesFilter,
+    WastesService,
+)
 from app.models.user import User
 
 router = APIRouter(prefix='/wastes', tags=['wastes'])
@@ -28,6 +33,7 @@ async def get_wastes(
     user: Annotated[User, Depends(get_current_user)],
     service: Annotated[WastesService, Depends(get_wastes_service)],
     pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    wastes_filter: Annotated[WastesFilter, Depends(WastesFilter)],
 ) -> WasteListResponse:
     """Get all wastes.
 
@@ -35,11 +41,12 @@ async def get_wastes(
         user (User): Current authorized user.
         service (WastesService): Wastes service.
         pagination (PaginationParams): Pagination params.
+        wastes_filter (WastesFilter): Wastes filter.
 
     Returns:
         WasteListResponse: List of wastes.
     """
-    response = await service.get_wastes(pagination)
+    response = await service.get_wastes(pagination, wastes_filter)
     return WasteListResponse(
         wastes=response.items,
         last=response.last,

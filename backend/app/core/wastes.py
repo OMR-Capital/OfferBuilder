@@ -2,9 +2,10 @@
 
 
 import re
-from typing import Optional
+from typing import Any, Optional
 
 from deta import Base
+from pydantic import BaseModel, validator
 
 from app.core.deta import serialize_model
 from app.core.models import generate_id
@@ -26,6 +27,68 @@ class BadFKKOCodeError(Exception):
     """Raised when FKKO code is invalid."""
 
 
+class WastesFilter(BaseModel):
+    """Wastes filter."""
+
+    name: Optional[str] = None
+
+    name_contains: Optional[str] = None
+
+    fkko_code: Optional[str] = None
+
+    fkko_code_prefix: Optional[str] = None
+
+    @validator('name', 'name_contains')
+    @classmethod
+    def validate_name(cls, name: Optional[str]) -> Optional[str]:
+        """Validate name.
+
+        Args:
+            name (Optional[str]): Name.
+
+        Returns:
+            Optional[str]: Name if it is not None.
+        """
+        if name is None:
+            return name
+
+        return Waste.normalize_name(name)
+
+    @validator('fkko_code', 'fkko_code_prefix')
+    @classmethod
+    def validate_fkko_code(cls, fkko_code: Optional[str]) -> Optional[str]:
+        """Validate FKKO code.
+
+        Args:
+            fkko_code (Optional[str]): FKKO code.
+
+        Returns:
+            Optional[str]: FKKO code if it is not None.
+        """
+        if fkko_code is None:
+            return fkko_code
+
+        return Waste.normalize_fkko_code(fkko_code)
+
+    def as_query(self) -> dict[str, Any]:
+        """Transform filter to Deta query.
+
+        Returns:
+            dict[str, Any]: Deta query.
+        """
+        query = {
+            'normalized_name': self.name,
+            'normalized_name?contains': self.name_contains,
+            'normalized_fkko_code': self.fkko_code,
+            'normalized_fkko_code?prefix': self.fkko_code_prefix,
+        }
+        return {
+            query: value
+            for query, value in query.items()  # noqa: WPS110
+            if value is not None
+        }
+
+
 class WastesService(object):
     """Wastes service.
 
@@ -39,16 +102,20 @@ class WastesService(object):
     async def get_wastes(
         self,
         pagination: PaginationParams = default_pagination,
+        wastes_filter: Optional[WastesFilter] = None,
     ) -> PaginationResponse[Waste]:
         """Get all wastes.
 
         Args:
             pagination (PaginationParams): Pagination params.
+            wastes_filter (Optional[WastesFilter]): Wastes filter.
 
         Returns:
             PaginationResponse[Waste]: Pagination response.
         """
+        query = wastes_filter.as_query() if wastes_filter else None
         response = self.base.fetch(
+            query=query,
             limit=pagination.limit,
             last=pagination.last,
         )
@@ -100,7 +167,9 @@ class WastesService(object):
         waste = Waste(
             waste_id=waste_id,
             name=name,
+            normalized_name=Waste.normalize_name(name),
             fkko_code=fkko_code,
+            normalized_fkko_code=Waste.normalize_fkko_code(fkko_code),
         )
         self.base.put(serialize_model(waste), waste_id)
 
