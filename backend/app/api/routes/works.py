@@ -3,7 +3,7 @@
 Contains CRUD operations for works.
 """
 
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends
 
@@ -17,7 +17,7 @@ from app.api.schemes.works import (
     WorkUpdate,
 )
 from app.core.pagination import PaginationParams
-from app.core.works import WorkNotFoundError, WorksService
+from app.core.works import WorkNotFoundError, WorksFilter, WorksService
 from app.models.user import User
 
 router = APIRouter(prefix='/works', tags=['works'])
@@ -28,6 +28,7 @@ async def get_works(
     user: Annotated[User, Depends(get_current_user)],
     service: Annotated[WorksService, Depends(get_works_service)],
     pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    works_filter: Annotated[Optional[WorksFilter], Depends(WorksFilter)],
 ) -> WorkListResponse:
     """Get all works.
 
@@ -35,11 +36,12 @@ async def get_works(
         user (User): Current authorized user.
         service (WorksService): Works service.
         pagination (PaginationParams): Pagination params.
+        works_filter (WorksFilter): Works filter.
 
     Returns:
         WorkListResponse: List of works.
     """
-    response = await service.get_works(pagination)
+    response = await service.get_works(pagination, works_filter)
     return WorkListResponse(
         works=response.items,
         last=response.last,

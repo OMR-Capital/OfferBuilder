@@ -1,8 +1,9 @@
 """Works business logic."""
 
-from typing import Optional
+from typing import Any, Optional
 
 from deta import Base
+from pydantic import BaseModel, validator
 
 from app.core.deta import serialize_model
 from app.core.models import generate_id
@@ -18,6 +19,46 @@ class WorkNotFoundError(Exception):
     """Raised when work not found."""
 
 
+class WorksFilter(BaseModel):
+    """Works filter."""
+
+    name: Optional[str] = None
+
+    name_contains: Optional[str] = None
+
+    @validator('name', 'name_contains')
+    @classmethod
+    def validate_name(cls, name: Optional[str]) -> Optional[str]:
+        """Validate name.
+
+        Args:
+            name (Optional[str]): Name.
+
+        Returns:
+            Optional[str]: Name if it is not None.
+        """
+        if name is None:
+            return name
+
+        return Work.normalize_name(name)
+
+    def as_query(self) -> dict[str, Any]:
+        """Transform filter to Deta query.
+
+        Returns:
+            dict[str, Any]: Deta query.
+        """
+        query = {
+            'normalized_name': self.name,
+            'normalized_name?contains': self.name_contains,
+        }
+        return {
+            query: value
+            for query, value in query.items()  # noqa: WPS110
+            if value is not None
+        }
+
+
 class WorksService(object):
     """Works service.
 
@@ -31,16 +72,20 @@ class WorksService(object):
     async def get_works(
         self,
         pagination: PaginationParams = default_pagination,
+        works_filter: Optional[WorksFilter] = None,
     ) -> PaginationResponse[Work]:
         """Get all works.
 
         Args:
             pagination (PaginationParams): Pagination params.
+            works_filter (Optional[WorksFilter]): Works filter.
 
         Returns:
             PaginationResponse[Work]: Pagination response.
         """
+        query = works_filter.as_query() if works_filter else None
         response = self.base.fetch(
+            query=query,
             limit=pagination.limit,
             last=pagination.last,
         )
@@ -81,6 +126,7 @@ class WorksService(object):
         work = Work(
             work_id=work_id,
             name=name,
+            normalized_name=Work.normalize_name(name),
         )
         self.base.put(serialize_model(work), work_id)
         return work
