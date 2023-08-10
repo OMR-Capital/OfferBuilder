@@ -19,6 +19,8 @@ class OfferListResponse(BaseModel):
 
     offers: list[Offer]
 
+    last: Optional[str]
+
 
 class OfferCreate(BaseModel):
     """Offer create scheme."""

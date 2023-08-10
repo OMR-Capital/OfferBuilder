@@ -31,3 +31,5 @@ class WasteListResponse(BaseModel):
     """Waste list response scheme."""
 
     wastes: list[Waste]
+
+    last: Optional[str]

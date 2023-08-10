@@ -17,6 +17,7 @@ from app.api.schemes.offers import (
 )
 from app.core.docx import DocFormat, decode_base64, get_media_type
 from app.core.offers import OfferNotFoundError, OffersService
+from app.core.pagination import PaginationParams
 from app.models.user import User
 
 router = APIRouter(prefix='/offers', tags=['offers'])
@@ -26,18 +27,23 @@ router = APIRouter(prefix='/offers', tags=['offers'])
 async def get_offers(
     user: Annotated[User, Depends(get_current_user)],
     service: Annotated[OffersService, Depends(get_offers_service)],
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
 ) -> OfferListResponse:
     """Get offers list.
 
     Args:
         user (User): Current user
         service (OffersService): Offers service
+        pagination (PaginationParams): Pagination params.
 
     Returns:
         OfferListResponse: Offers list
     """
-    offers = await service.get_offers()
-    return OfferListResponse(offers=offers)
+    response = await service.get_offers(pagination)
+    return OfferListResponse(
+        offers=response.items,
+        last=response.last,
+    )
 
 
 @router.get('/{offer_id}')

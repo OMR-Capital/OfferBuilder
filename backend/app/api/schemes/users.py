@@ -49,6 +49,8 @@ class UserListResponse(BaseModel):
 
     users: list[UserOut]
 
+    last: Optional[str]
+
 
 class UserPasswordResponse(BaseModel):
     """Password update response scheme."""

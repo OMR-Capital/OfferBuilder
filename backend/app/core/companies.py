@@ -4,6 +4,11 @@ from deta import Base
 
 from app.core.deta import serialize_model
 from app.core.models import generate_id
+from app.core.pagination import (
+    PaginationParams,
+    PaginationResponse,
+    default_pagination,
+)
 from app.models.company import Company
 
 
@@ -21,14 +26,27 @@ class CompaniesService(object):
         """Initialize companies service."""
         self.base = Base('companies')
 
-    async def get_companies(self) -> list[Company]:
+    async def get_companies(
+        self,
+        pagination: PaginationParams = default_pagination,
+    ) -> PaginationResponse[Company]:
         """Get all companies.
 
+        Args:
+            pagination (PaginationParams): Pagination params.
+
         Returns:
-            List[Company]: List of companies.
+            PaginationResponse[Company]: Pagination response.
         """
-        db_companies = self.base.fetch().items
-        return [Company(**db_company) for db_company in db_companies]
+        response = self.base.fetch(
+            limit=pagination.limit,
+            last=pagination.last,
+        )
+        companies = [Company(**db_company) for db_company in response.items]
+        return PaginationResponse(
+            items=companies,
+            last=response.last,
+        )
 
     async def get_company(self, company_id: str) -> Company:
         """Get company by id.

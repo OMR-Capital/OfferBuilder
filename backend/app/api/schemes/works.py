@@ -1,5 +1,7 @@
 """Schemes of works API."""
 
+from typing import Optional
+
 from pydantic import BaseModel
 
 from app.models.work import Work
@@ -27,3 +29,5 @@ class WorkListResponse(BaseModel):
     """Work list response scheme."""
 
     works: list[Work]
+
+    last: Optional[str]

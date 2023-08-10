@@ -27,6 +27,7 @@ from app.core.offer_tpls import (
     OfferTemplatesService,
 )
 from app.core.offers import OffersService
+from app.core.pagination import PaginationParams
 from app.models.user import User
 
 router = APIRouter(prefix='/offer_tpls', tags=['offers templates'])
@@ -36,18 +37,23 @@ router = APIRouter(prefix='/offer_tpls', tags=['offers templates'])
 async def get_offer_tpls(
     user: Annotated[User, Depends(get_current_user)],
     service: Annotated[OfferTemplatesService, Depends(get_offer_tpls_service)],
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
 ) -> OfferTemplateListResponse:
     """Get offer templates list.
 
     Args:
         user (User): Current user
         service (OfferTemplatesService): Offer templates service
+        pagination (PaginationParams): Pagination params.
 
     Returns:
         OfferTemplateListResponse: Offer templates list
     """
-    offer_tpls = await service.get_offer_tpls()
-    return OfferTemplateListResponse(offer_tpls=offer_tpls)
+    response = await service.get_offer_tpls(pagination)
+    return OfferTemplateListResponse(
+        offer_tpls=response.items,
+        last=response.last,
+    )
 
 
 @router.get('/{offer_tpl_id}')

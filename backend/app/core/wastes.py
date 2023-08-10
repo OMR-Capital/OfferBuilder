@@ -8,6 +8,11 @@ from deta import Base
 
 from app.core.deta import serialize_model
 from app.core.models import generate_id
+from app.core.pagination import (
+    PaginationParams,
+    PaginationResponse,
+    default_pagination,
+)
 from app.models.waste import Waste
 
 FKKO_CODE_PATTERN = re.compile(r'^(\d| )+$')
@@ -31,14 +36,27 @@ class WastesService(object):
         """Initialize service."""
         self.base = Base('wastes')
 
-    async def get_wastes(self) -> list[Waste]:
+    async def get_wastes(
+        self,
+        pagination: PaginationParams = default_pagination,
+    ) -> PaginationResponse[Waste]:
         """Get all wastes.
 
+        Args:
+            pagination (PaginationParams): Pagination params.
+
         Returns:
-            list[Waste]: List of wastes.
+            PaginationResponse[Waste]: Pagination response.
         """
-        db_wastes = self.base.fetch().items
-        return [Waste(**db_waste) for db_waste in db_wastes]
+        response = self.base.fetch(
+            limit=pagination.limit,
+            last=pagination.last,
+        )
+        wastes = [Waste(**db_waste) for db_waste in response.items]
+        return PaginationResponse(
+            items=wastes,
+            last=response.last,
+        )
 
     async def get_waste(self, waste_id: str) -> Waste:
         """Get waste by id.

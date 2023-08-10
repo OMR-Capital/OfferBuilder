@@ -14,6 +14,11 @@ from app.core.docx import (  # noqa: WPS450
     convert_to_pdf,
 )
 from app.core.models import generate_id
+from app.core.pagination import (
+    PaginationParams,
+    PaginationResponse,
+    default_pagination,
+)
 from app.models.offer import Offer
 
 
@@ -40,14 +45,30 @@ class OffersService(object):
         self.base = Base('offers')
         self.drive = Drive('offers')
 
-    async def get_offers(self) -> list[Offer]:
+    async def get_offers(
+        self,
+        pagination: PaginationParams = default_pagination,
+    ) -> PaginationResponse[Offer]:
         """Get offers.
 
+        Args:
+            pagination (PaginationParams): Pagination params
+
         Returns:
-            list[Offer]: Offer
+            PaginationResponse[Offer]: Pagination response
         """
-        db_offers = self.base.fetch().items
-        return [Offer(**db_offer) for db_offer in db_offers]
+        response = self.base.fetch(
+            limit=pagination.limit,
+            last=pagination.last,
+        )
+        offers = [
+            Offer(**db_offer)
+            for db_offer in response.items
+        ]
+        return PaginationResponse(
+            items=offers,
+            last=response.last,
+        )
 
     async def get_offer(self, offer_id: str) -> Offer:
         """Get offer.

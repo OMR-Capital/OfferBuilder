@@ -9,6 +9,11 @@ from docxtpl.template import DocxTemplate
 from app.core.deta import BytesIterator, serialize_model
 from app.core.docx import DocFormat, UnsupportedFileFormat, convert_to_pdf
 from app.core.models import generate_id
+from app.core.pagination import (
+    PaginationParams,
+    PaginationResponse,
+    default_pagination,
+)
 from app.models.offer_tpl import OfferTemplate
 
 
@@ -35,17 +40,30 @@ class OfferTemplatesService(object):
         self.base = Base('offer_tpls')
         self.drive = Drive('offer_tpls')
 
-    async def get_offer_tpls(self) -> list[OfferTemplate]:
+    async def get_offer_tpls(
+        self,
+        pagination: PaginationParams = default_pagination,
+    ) -> PaginationResponse[OfferTemplate]:
         """Get offer templates.
 
+        Args:
+            pagination (PaginationParams): Pagination params
+
         Returns:
-            list[OfferTemplate]: Offer templates
+            PaginationResponse[OfferTemplate]: Pagination response
         """
-        db_offer_tpls = self.base.fetch().items
-        return [
+        response = self.base.fetch(
+            limit=pagination.limit,
+            last=pagination.last,
+        )
+        offer_tpls = [
             OfferTemplate(**db_offer_tpl)
-            for db_offer_tpl in db_offer_tpls
+            for db_offer_tpl in response.items
         ]
+        return PaginationResponse(
+            items=offer_tpls,
+            last=response.last,
+        )
 
     async def get_offer_tpl(self, offer_tpl_id: str) -> OfferTemplate:
         """Get offer template.

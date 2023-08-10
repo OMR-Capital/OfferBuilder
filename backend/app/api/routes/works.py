@@ -16,6 +16,7 @@ from app.api.schemes.works import (
     WorkResponse,
     WorkUpdate,
 )
+from app.core.pagination import PaginationParams
 from app.core.works import WorkNotFoundError, WorksService
 from app.models.user import User
 
@@ -26,18 +27,23 @@ router = APIRouter(prefix='/works', tags=['works'])
 async def get_works(
     user: Annotated[User, Depends(get_current_user)],
     service: Annotated[WorksService, Depends(get_works_service)],
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
 ) -> WorkListResponse:
     """Get all works.
 
     Args:
         user (User): Current authorized user.
         service (WorksService): Works service.
+        pagination (PaginationParams): Pagination params.
 
     Returns:
         WorkListResponse: List of works.
     """
-    works = await service.get_works()
-    return WorkListResponse(works=works)
+    response = await service.get_works(pagination)
+    return WorkListResponse(
+        works=response.items,
+        last=response.last,
+    )
 
 
 @router.get('/{work_id}')

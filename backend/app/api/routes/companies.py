@@ -17,6 +17,7 @@ from app.api.schemes.companies import (
     CompanyUpdate,
 )
 from app.core.companies import CompaniesService, CompanyNotFoundError
+from app.core.pagination import PaginationParams
 from app.models.user import User
 
 router = APIRouter(prefix='/companies', tags=['companies'])
@@ -26,18 +27,23 @@ router = APIRouter(prefix='/companies', tags=['companies'])
 async def get_companies(
     user: Annotated[User, Depends(get_current_user)],
     service: Annotated[CompaniesService, Depends(get_companies_service)],
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
 ) -> CompanyListResponse:
     """Get all companies.
 
     Args:
+        pagination (PaginationParams): Pagination params.
         user (User): Current authorized user.
         service (CompaniesService): Companies service.
 
     Returns:
         CompanyListResponse: List of companies.
     """
-    companies = await service.get_companies()
-    return CompanyListResponse(companies=companies)
+    response = await service.get_companies(pagination)
+    return CompanyListResponse(
+        companies=response.items,
+        last=response.last,
+    )
 
 
 @router.get('/{company_id}')

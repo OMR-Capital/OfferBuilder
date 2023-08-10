@@ -16,6 +16,7 @@ from app.api.schemes.wastes import (
     WasteResponse,
     WasteUpdate,
 )
+from app.core.pagination import PaginationParams
 from app.core.wastes import BadFKKOCodeError, WasteNotFoundError, WastesService
 from app.models.user import User
 
@@ -26,18 +27,23 @@ router = APIRouter(prefix='/wastes', tags=['wastes'])
 async def get_wastes(
     user: Annotated[User, Depends(get_current_user)],
     service: Annotated[WastesService, Depends(get_wastes_service)],
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
 ) -> WasteListResponse:
     """Get all wastes.
 
     Args:
         user (User): Current authorized user.
         service (WastesService): Wastes service.
+        pagination (PaginationParams): Pagination params.
 
     Returns:
         WasteListResponse: List of wastes.
     """
-    wastes = await service.get_wastes()
-    return WasteListResponse(wastes=wastes)
+    response = await service.get_wastes(pagination)
+    return WasteListResponse(
+        wastes=response.items,
+        last=response.last,
+    )
 
 
 @router.get('/{waste_id}')

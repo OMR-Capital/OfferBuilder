@@ -19,6 +19,7 @@ from app.api.schemes.users import (
     UserResponse,
     UserUpdate,
 )
+from app.core.pagination import PaginationParams
 from app.core.users import (
     LoginAlreadyExistsError,
     UserNotFoundError,
@@ -113,12 +114,14 @@ async def update_my_user_password(
 async def get_users(
     admin: Annotated[User, Depends(get_admin)],
     service: Annotated[UsersService, Depends(get_users_service)],
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
 ) -> UserListResponse:
     """Get all users.
 
     Args:
         admin (User): Current user must be an admin.
         service (UsersService): Users service.
+        pagination (PaginationParams): Pagination params.
 
     Raises:
         AdminRightsRequired: If current user is not an admin.
@@ -126,9 +129,9 @@ async def get_users(
     Returns:
         UserListResponse: List of users.
     """
-    users = await service.get_users()
-    out_users = [UserOut(**user.dict()) for user in users]
-    return UserListResponse(users=out_users)
+    response = await service.get_users(pagination)
+    out_users = [UserOut(**user.dict()) for user in response.items]
+    return UserListResponse(users=out_users, last=response.last)
 
 
 @router.get('/{uid}')

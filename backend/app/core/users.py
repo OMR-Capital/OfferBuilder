@@ -13,6 +13,11 @@ from app.core.auth import (
     get_password_hash,
 )
 from app.core.deta import serialize_model
+from app.core.pagination import (
+    PaginationParams,
+    PaginationResponse,
+    default_pagination,
+)
 from app.models.user import User, UserRole
 
 
@@ -87,14 +92,27 @@ class UsersService(object):
         """Initialize users service."""
         self.base = Base('users')
 
-    async def get_users(self) -> list[User]:
+    async def get_users(
+        self,
+        pagination: PaginationParams = default_pagination,
+    ) -> PaginationResponse[User]:
         """Get all users.
 
+        Args:
+            pagination (PaginationParams): Pagination params.
+
         Returns:
-            list[User]: List of users.
+            PaginationResponse[User]: Pagination response.
         """
-        db_users = self.base.fetch().items
-        return [User(**db_user) for db_user in db_users]
+        response = self.base.fetch(
+            limit=pagination.limit,
+            last=pagination.last,
+        )
+        users = [User(**db_user) for db_user in response.items]
+        return PaginationResponse(
+            items=users,
+            last=response.last,
+        )
 
     async def get_user(self, uid: str) -> User:
         """Get user by id.

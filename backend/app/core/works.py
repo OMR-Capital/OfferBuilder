@@ -6,6 +6,11 @@ from deta import Base
 
 from app.core.deta import serialize_model
 from app.core.models import generate_id
+from app.core.pagination import (
+    PaginationParams,
+    PaginationResponse,
+    default_pagination,
+)
 from app.models.work import Work
 
 
@@ -23,14 +28,27 @@ class WorksService(object):
         """Initialize service."""
         self.base = Base('works')
 
-    async def get_works(self) -> list[Work]:
+    async def get_works(
+        self,
+        pagination: PaginationParams = default_pagination,
+    ) -> PaginationResponse[Work]:
         """Get all works.
 
+        Args:
+            pagination (PaginationParams): Pagination params.
+
         Returns:
-            list[Work]: List of works.
+            PaginationResponse[Work]: Pagination response.
         """
-        db_works = self.base.fetch().items
-        return [Work(**db_work) for db_work in db_works]
+        response = self.base.fetch(
+            limit=pagination.limit,
+            last=pagination.last,
+        )
+        works = [Work(**db_work) for db_work in response.items]
+        return PaginationResponse(
+            items=works,
+            last=response.last,
+        )
 
     async def get_work(self, work_id: str) -> Work:
         """Get work by id.

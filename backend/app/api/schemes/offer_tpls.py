@@ -20,6 +20,8 @@ class OfferTemplateListResponse(BaseModel):
 
     offer_tpls: list[OfferTemplate]
 
+    last: Optional[str]
+
 
 class OfferTemplateCreate(BaseModel):
     """Offer template create scheme."""
