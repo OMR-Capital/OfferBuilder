@@ -3,13 +3,12 @@
 from io import BytesIO
 from typing import Optional
 
-from deta import Drive
+from deta import Base, Drive
 from docxtpl.template import DocxTemplate
 
-from app.core.deta import BytesIterator
+from app.core.deta import BytesIterator, serialize_model
 from app.core.docx import DocFormat, UnsupportedFileFormat, convert_to_pdf
 from app.core.models import generate_id
-from app.db.offer_tpl import OfferTemplateInDB
 from app.models.offer_tpl import OfferTemplate
 
 
@@ -33,6 +32,7 @@ class OfferTemplatesService(object):
 
     def __init__(self) -> None:
         """Initialize service."""
+        self.base = Base('offer_tpls')
         self.drive = Drive('offer_tpls')
 
     async def get_offer_tpls(self) -> list[OfferTemplate]:
@@ -41,9 +41,9 @@ class OfferTemplatesService(object):
         Returns:
             list[OfferTemplate]: Offer templates
         """
-        db_offer_tpls = await OfferTemplateInDB.get_all()
+        db_offer_tpls = self.base.fetch().items
         return [
-            OfferTemplate(**db_offer_tpl.dict())
+            OfferTemplate(**db_offer_tpl)
             for db_offer_tpl in db_offer_tpls
         ]
 
@@ -59,11 +59,11 @@ class OfferTemplatesService(object):
         Returns:
             OfferTemplate: Offer template
         """
-        db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
+        db_offer_tpl = self.base.get(offer_tpl_id)
         if not db_offer_tpl:
             raise OfferTemplateNotFoundError()
 
-        return OfferTemplate(**db_offer_tpl.dict())
+        return OfferTemplate(**db_offer_tpl)
 
     async def create_offer_tpl(
         self,
@@ -85,13 +85,13 @@ class OfferTemplatesService(object):
         offer_tpl_id = generate_id()
         await self._update_offer_tpl_file(offer_tpl_id, offer_tpl_file)
 
-        db_offer_tpl = OfferTemplateInDB(
+        offer_tpl = OfferTemplate(
             offer_tpl_id=offer_tpl_id,
             name=name,
         )
-        await db_offer_tpl.save()
+        self.base.put(serialize_model(offer_tpl), offer_tpl_id)
 
-        return OfferTemplate(**db_offer_tpl.dict())
+        return offer_tpl
 
     async def update_offer_tpl(
         self,
@@ -113,17 +113,17 @@ class OfferTemplatesService(object):
         Returns:
             OfferTemplate: Offer template
         """
-        db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
+        db_offer_tpl = self.base.get(offer_tpl_id)
         if not db_offer_tpl:
             raise OfferTemplateNotFoundError()
 
-        db_offer_tpl.name = name or db_offer_tpl.name
-        await db_offer_tpl.save()
+        db_offer_tpl['name'] = name or db_offer_tpl['name']
+        self.base.put(db_offer_tpl, offer_tpl_id)
 
         if offer_tpl_file:
             await self._update_offer_tpl_file(offer_tpl_id, offer_tpl_file)
 
-        return OfferTemplate(**db_offer_tpl.dict())
+        return OfferTemplate(**db_offer_tpl)
 
     async def delete_offer_tpl(self, offer_tpl_id: str) -> OfferTemplate:
         """Delete offer template.
@@ -137,14 +137,14 @@ class OfferTemplatesService(object):
         Returns:
             OfferTemplate: Deleted offer template
         """
-        db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
+        db_offer_tpl = self.base.get(offer_tpl_id)
         if not db_offer_tpl:
             raise OfferTemplateNotFoundError()
 
-        await db_offer_tpl.delete()
+        self.base.delete(offer_tpl_id)
         self.drive.delete(offer_tpl_id)
 
-        return OfferTemplate(**db_offer_tpl.dict())
+        return OfferTemplate(**db_offer_tpl)
 
     async def get_offer_tpl_file(
         self,

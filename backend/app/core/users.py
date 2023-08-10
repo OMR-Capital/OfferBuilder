@@ -4,6 +4,7 @@ from secrets import choice
 from string import ascii_letters
 from typing import Optional
 
+from deta import Base
 from jose import JWTError
 
 from app.core.auth import (
@@ -11,7 +12,7 @@ from app.core.auth import (
     get_access_token_payload,
     get_password_hash,
 )
-from app.db.user import UserInDB
+from app.core.deta import serialize_model
 from app.models.user import User, UserRole
 
 
@@ -46,11 +47,11 @@ async def get_authorized_user(token: str) -> Optional[User]:
     if uid is None:
         return None
 
-    db_user = await UserInDB.get_or_none(uid)
+    db_user = Base('users').get(uid)
     if db_user is None:
         return None
 
-    return User(**db_user.dict())
+    return User(**db_user)
 
 
 async def get_verified_admin(user: User) -> Optional[User]:
@@ -82,14 +83,18 @@ class UsersService(object):
     Provides methods for users management.
     """
 
+    def __init__(self) -> None:
+        """Initialize users service."""
+        self.base = Base('users')
+
     async def get_users(self) -> list[User]:
         """Get all users.
 
         Returns:
             list[User]: List of users.
         """
-        db_users = await UserInDB.get_all()
-        return [User(**db_user.dict()) for db_user in db_users]
+        db_users = self.base.fetch().items
+        return [User(**db_user) for db_user in db_users]
 
     async def get_user(self, uid: str) -> User:
         """Get user by id.
@@ -103,11 +108,11 @@ class UsersService(object):
         Returns:
             User: User object if found, None otherwise.
         """
-        db_user = await UserInDB.get_or_none(uid)
+        db_user = self.base.get(uid)
         if db_user is None:
             raise UserNotFoundError()
 
-        return User(**db_user.dict())
+        return User(**db_user)
 
     async def create_user(
         self,
@@ -127,16 +132,16 @@ class UsersService(object):
         password_hash = get_password_hash(password)
         uid = generate_uid()
 
-        db_user = UserInDB(
+        user = User(
             uid=uid,
             login=uid,
             name=name,
             password_hash=password_hash,
             role=role,
         )
-        await db_user.save()
+        self.base.put(serialize_model(user), uid)
 
-        return User(**db_user.dict()), password
+        return user, password
 
     async def update_user(
         self,
@@ -160,22 +165,22 @@ class UsersService(object):
         Returns:
             User: Updated user.
         """
-        db_user = await UserInDB.get_or_none(uid)
+        db_user = self.base.get(uid)
         if db_user is None:
             raise UserNotFoundError()
 
-        db_user.name = name or db_user.name
-        db_user.role = role or db_user.role
+        db_user['name'] = name or db_user['name']
+        db_user['role'] = role or db_user['role']
 
         if login:
             if not await self._check_login(login):
                 raise LoginAlreadyExistsError()
 
-            db_user.login = login
+            db_user['login'] = login
 
-        await db_user.save()
+        self.base.put(db_user, uid)
 
-        return User(**db_user.dict())
+        return User(**db_user)
 
     async def update_user_password(self, uid: str) -> tuple[User, str]:
         """Update user password.
@@ -189,15 +194,15 @@ class UsersService(object):
         Returns:
             tuple[User, str]: Updated user and generated password.
         """
-        db_user = await UserInDB.get_or_none(uid)
+        db_user = self.base.get(uid)
         if db_user is None:
             raise UserNotFoundError()
 
         password = generate_password()
-        db_user.password_hash = get_password_hash(password)
-        await db_user.save()
+        db_user['password_hash'] = get_password_hash(password)
+        self.base.put(db_user, uid)
 
-        return User(**db_user.dict()), password
+        return User(**db_user), password
 
     async def delete_user(self, uid: str) -> User:
         """Delete user.
@@ -211,13 +216,13 @@ class UsersService(object):
         Returns:
             User: Deleted user.
         """
-        db_user = await UserInDB.get_or_none(uid)
+        db_user = self.base.get(uid)
         if db_user is None:
             raise UserNotFoundError()
 
-        await db_user.delete()
+        self.base.delete(uid)
 
-        return User(**db_user.dict())
+        return User(**db_user)
 
     async def _check_login(self, login: str) -> bool:
         """Check if login is already taken.
@@ -229,5 +234,5 @@ class UsersService(object):
             bool: True if login is already taken, False otherwise.
         """
         # ODetaM queries are not typed properly, so we need to use ignore
-        users_with_same_login = await UserInDB.query(UserInDB.login == login)
+        users_with_same_login = self.base.fetch({'login': login}).items
         return not bool(users_with_same_login)

@@ -1,8 +1,23 @@
 """Utilities for Deta SDK."""
 
 
+import json
 from io import BytesIO
-from typing import Iterator, Literal, Optional
+from typing import Any, Iterator, Literal, Optional
+
+from pydantic import BaseModel
+
+
+def serialize_model(model: BaseModel) -> Any:
+    """Serialize pydantic model to valid json.
+
+    Args:
+        model (BaseModel): Pydantic model
+
+    Returns:
+        Any: Serialized model
+    """
+    return json.loads(model.json())
 
 
 class BytesIterator(BytesIO):

@@ -14,7 +14,7 @@ from app.core.config import (
     ROOT_LOGIN,
     ROOT_PASSWORD,
 )
-from app.db.user import UserInDB
+from app.core.deta import serialize_model
 from app.models.user import User, UserRole
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
@@ -131,17 +131,16 @@ class AuthService(object):
         if login == ROOT_LOGIN and password == ROOT_PASSWORD:
             return root_user
 
-        # ODetaM queries are not typed properly, so we need to use ignore
-        users_with_login = await UserInDB.query(UserInDB.login == login)
+        users_with_login = self.base.fetch({'login': login}).items
         if not users_with_login:
             raise BadCredentialsError()
 
-        db_user = users_with_login[0]
+        user = User(**users_with_login[0])
 
-        if not verify_password(password, db_user.password_hash):
+        if not verify_password(password, user.password_hash):
             raise BadCredentialsError()
 
-        return User(**db_user.dict())
+        return user
 
     async def _register_root_user(self) -> User:
         """Register root user.
@@ -153,13 +152,13 @@ class AuthService(object):
         Returns:
             User: User instance.
         """
-        db_user = UserInDB(
+        user = User(
             uid=ROOT_LOGIN,
             login=ROOT_LOGIN,
             name='Root',
             role=UserRole.superuser,
             password_hash=get_password_hash(ROOT_PASSWORD),
         )
-        await db_user.save()
+        self.base.put(serialize_model(user), user.uid)
 
-        return User(**db_user.dict())
+        return User(**user.dict())

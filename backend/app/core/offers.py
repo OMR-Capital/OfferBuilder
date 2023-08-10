@@ -4,17 +4,16 @@
 from io import BytesIO
 from typing import Any, Optional
 
-from deta import Drive
+from deta import Base, Drive
 from docxtpl import DocxTemplate
 
-from app.core.deta import BytesIterator
+from app.core.deta import BytesIterator, serialize_model
 from app.core.docx import (  # noqa: WPS450
     DocFormat,
     UnsupportedFileFormat,
     convert_to_pdf,
 )
 from app.core.models import generate_id
-from app.db.offer import OfferInDB
 from app.models.offer import Offer
 
 
@@ -38,6 +37,7 @@ class OffersService(object):
 
     def __init__(self) -> None:
         """Initialize service."""
+        self.base = Base('offers')
         self.drive = Drive('offers')
 
     async def get_offers(self) -> list[Offer]:
@@ -46,11 +46,8 @@ class OffersService(object):
         Returns:
             list[Offer]: Offer
         """
-        db_offers = await OfferInDB.get_all()
-        return [
-            Offer(**db_offer.dict())
-            for db_offer in db_offers
-        ]
+        db_offers = self.base.fetch().items
+        return [Offer(**db_offer) for db_offer in db_offers]
 
     async def get_offer(self, offer_id: str) -> Offer:
         """Get offer.
@@ -64,11 +61,11 @@ class OffersService(object):
         Returns:
             Offer: Offer
         """
-        db_offer = await OfferInDB.get_or_none(offer_id)
+        db_offer = self.base.get(offer_id)
         if not db_offer:
             raise OfferNotFoundError()
 
-        return Offer(**db_offer.dict())
+        return Offer(**db_offer)
 
     async def create_offer(
         self,
@@ -87,13 +84,13 @@ class OffersService(object):
         offer_id = generate_id()
         await self._update_offer_file(offer_id, offer_file)
 
-        db_offer = OfferInDB(
+        offer = Offer(
             offer_id=offer_id,
             name=name,
         )
-        await db_offer.save()
+        self.base.put(serialize_model(offer), offer_id)
 
-        return Offer(**db_offer.dict())
+        return offer
 
     async def update_offer(
         self,
@@ -114,17 +111,17 @@ class OffersService(object):
         Returns:
             Offer: Offer
         """
-        db_offer = await OfferInDB.get_or_none(offer_id)
+        db_offer = self.base.get(offer_id)
         if not db_offer:
             raise OfferNotFoundError()
 
-        db_offer.name = name or db_offer.name
-        await db_offer.save()
+        db_offer['name'] = name or db_offer['name']
+        self.base.put(serialize_model(db_offer), offer_id)
 
         if offer_file:
             await self._update_offer_file(offer_id, offer_file)
 
-        return Offer(**db_offer.dict())
+        return Offer(**db_offer)
 
     async def delete_offer(self, offer_id: str) -> Offer:
         """Delete offer.
@@ -138,14 +135,14 @@ class OffersService(object):
         Returns:
             Offer: Deleted offer
         """
-        db_offer = await OfferInDB.get_or_none(offer_id)
+        db_offer = self.base.get(offer_id)
         if not db_offer:
             raise OfferNotFoundError()
 
-        await db_offer.delete()
+        self.base.delete(offer_id)
         self.drive.delete(offer_id)
 
-        return Offer(**db_offer.dict())
+        return Offer(**db_offer)
 
     async def build_offer(
         self,

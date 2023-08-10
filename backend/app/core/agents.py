@@ -7,7 +7,7 @@ See https://dadata.ru/api/find-party/
 """
 
 from http import HTTPStatus
-from typing import Any, Optional
+from typing import Any
 
 import requests
 

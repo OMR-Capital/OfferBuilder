@@ -1,8 +1,9 @@
 """Companies business logic."""
 
+from deta import Base
 
+from app.core.deta import serialize_model
 from app.core.models import generate_id
-from app.db.company import CompanyInDB
 from app.models.company import Company
 
 
@@ -16,14 +17,18 @@ class CompaniesService(object):
     Contains CRUD and manipulating operations for companies.
     """
 
+    def __init__(self) -> None:
+        """Initialize companies service."""
+        self.base = Base('companies')
+
     async def get_companies(self) -> list[Company]:
         """Get all companies.
 
         Returns:
             List[Company]: List of companies.
         """
-        db_companies = await CompanyInDB.get_all()
-        return [Company(**company.dict()) for company in db_companies]
+        db_companies = self.base.fetch().items
+        return [Company(**db_company) for db_company in db_companies]
 
     async def get_company(self, company_id: str) -> Company:
         """Get company by id.
@@ -37,11 +42,11 @@ class CompaniesService(object):
         Returns:
             Company: Company instance.
         """
-        db_company = await CompanyInDB.get(company_id)
+        db_company = self.base.get(company_id)
         if db_company is None:
             raise CompanyNotFoundError()
 
-        return Company(**db_company.dict())
+        return Company(**db_company)
 
     async def create_company(self, name: str) -> Company:
         """Create company.
@@ -53,13 +58,13 @@ class CompaniesService(object):
             Company: Created company.
         """
         company_id = generate_id()
-        company = CompanyInDB(
+        company = Company(
             company_id=company_id,
             name=name,
         )
-        await company.save()
+        self.base.put(serialize_model(company), company_id)
 
-        return Company(**company.dict())
+        return company
 
     async def update_company(self, company_id: str, name: str) -> Company:
         """Update company.
@@ -74,14 +79,14 @@ class CompaniesService(object):
         Returns:
             Company: Updated company.
         """
-        db_company = await CompanyInDB.get_or_none(company_id)
+        db_company = self.base.get(company_id)
         if db_company is None:
             raise CompanyNotFoundError()
 
-        db_company.name = name
-        await db_company.save()
+        db_company['name'] = name
+        self.base.put(db_company, company_id)
 
-        return Company(**db_company.dict())
+        return Company(**db_company)
 
     async def delete_company(self, company_id: str) -> Company:
         """Delete company.
@@ -95,10 +100,10 @@ class CompaniesService(object):
         Returns:
             Company: Deleted company.
         """
-        db_company = await CompanyInDB.get_or_none(company_id)
+        db_company = self.base.get(company_id)
         if db_company is None:
             raise CompanyNotFoundError()
 
-        await db_company.delete()
+        self.base.delete(company_id)
 
-        return Company(**db_company.dict())
+        return Company(**db_company)
