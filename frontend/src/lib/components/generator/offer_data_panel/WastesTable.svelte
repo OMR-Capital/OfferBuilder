@@ -1,11 +1,7 @@
 <script lang="ts">
-	import { WastesAPI } from '$lib/backend/api/wastes';
-	import type { Waste } from '$lib/backend/models/wastes';
 	import Snackbar from '$lib/components/common/Snackbar.svelte';
 	import Button, { Icon } from '@smui/button';
 	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
-	import LinearProgress from '@smui/linear-progress';
-	import { onMount } from 'svelte';
 	import type { WasteRow } from '../types';
 	import AddWasteRowDialog from './AddWasteRowDialog.svelte';
 
@@ -22,27 +18,9 @@
 		}
 	}
 
-	const wastesApi = new WastesAPI(token);
-
-	let availableWastes: Waste[] = [];
-	let wastesLoaded = false;
-
-	async function updateWastes() {
-		wastesLoaded = false;
-		const result = await wastesApi.getWastes();
-		if (result.ok) {
-			availableWastes = result.value;
-		} else {
-			snackbar.show(result.error.message);
-		}
-		wastesLoaded = true;
-	}
-
 	let addRowDialogOpen = false;
 
 	let snackbar: Snackbar;
-
-	onMount(updateWastes);
 </script>
 
 <div class="wastes-table">
@@ -70,12 +48,6 @@
 					</Row>
 				{/each}
 			</Body>
-			<LinearProgress
-				indeterminate
-				bind:closed={wastesLoaded}
-				aria-label="Загрузка..."
-				slot="progress"
-			/>
 		</DataTable>
 		<div class="offer-total-container">
 			<b>Итого:</b>
@@ -96,8 +68,8 @@
 </div>
 
 <AddWasteRowDialog
+    {token}
 	bind:open={addRowDialogOpen}
-	{availableWastes}
 	bind:rowNumber={nextRowNumber}
 	onConfirm={(wasteRow) => {
 		wasteRows = [...wasteRows, wasteRow];

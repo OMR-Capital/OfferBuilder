@@ -2,13 +2,15 @@ import { BaseAPI, type Result } from '../base_api';
 import { FileFormat } from '../models/docx';
 import type { OfferTpl } from '../models/offer_tpls';
 import type { Offer } from '../models/offers';
+import { asUrlParams, defaultPaginationParams, type PaginationParams } from '../pagination';
 
 interface OfferTplResponse {
 	offer_tpl: OfferTpl;
 }
 
-interface OfferTplsResponse {
+export interface OfferTplsResponse {
 	offer_tpls: OfferTpl[];
+    last: string | null;
 }
 
 interface OfferTplCreate {
@@ -21,12 +23,11 @@ interface BuiltOfferResponse {
 }
 
 export class OfferTplsAPI extends BaseAPI {
-	async getOfferTpls(): Promise<Result<OfferTpl[]>> {
-		const result = (await this.fetchApi('/offer_tpls', 'GET')) as Result<OfferTplsResponse>;
-		if (result.ok) {
-			return { ok: true, value: result.value.offer_tpls };
-		}
-		return result;
+    async getOfferTpls(
+        pagination: PaginationParams = defaultPaginationParams
+    ): Promise<Result<OfferTplsResponse>> {
+        const url = `/offer_tpls?${asUrlParams(pagination)}`;
+		return (await this.fetchApi(url, 'GET')) as Result<OfferTplsResponse>;
 	}
 
 	async deleteOfferTpl(offerTplId: string): Promise<Result<OfferTpl>> {

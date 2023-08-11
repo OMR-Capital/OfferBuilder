@@ -1,20 +1,16 @@
 """Offers templates API."""
 
-from io import BytesIO
 from typing import Annotated
 
-# Deta has unconventional import style, so we need to use noqa here
-from deta.drive import _Drive  # noqa: WPS450
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
-from app.api.dependencies import get_admin, get_current_user
-from app.api.exceptions.docx import FailConvertToPDF
+from app.api.dependencies.auth import get_admin, get_current_user
+from app.api.dependencies.offers import get_offers_service
+from app.api.dependencies.offer_tpls import get_offer_tpls_service
 from app.api.exceptions.offer_tpls import (
     BadOfferTemplateFile,
-    IncorrectOfferTemplateFile,
     OfferTemplateNotFound,
-    OfferTemplateUploadFailed,
 )
 from app.api.schemes.offer_tpls import (
     BuildedOfferResponse,
@@ -24,27 +20,14 @@ from app.api.schemes.offer_tpls import (
     OfferTemplateResponse,
     OfferTemplateUpdate,
 )
-from app.core.deta import BytesIterator
-from app.core.docx import (
-    DocFormat,
-    convert_to_pdf,
-    decode_base64,
-    get_media_type,
-)
-from app.core.models import generate_id
+from app.core.docx import DocFormat, decode_base64, get_media_type
 from app.core.offer_tpls import (
-    delete_offer_tpl_file,
-    fill_offer_tpl,
-    get_offer_tpl_file,
-    get_offer_tpls_drive,
-    save_offer_tpl_file,
-    validate_offer_tpl_file,
+    BadOfferTemplateFileError,
+    OfferTemplateNotFoundError,
+    OfferTemplatesService,
 )
-from app.core.offers import get_offers_drive, save_offer_file
-from app.db.offer import OfferInDB
-from app.db.offer_tpl import OfferTemplateInDB
-from app.models.offer import Offer
-from app.models.offer_tpl import OfferTemplate
+from app.core.offers import OffersService
+from app.core.pagination import PaginationParams
 from app.models.user import User
 
 router = APIRouter(prefix='/offer_tpls', tags=['offers templates'])
@@ -53,33 +36,38 @@ router = APIRouter(prefix='/offer_tpls', tags=['offers templates'])
 @router.get('/')
 async def get_offer_tpls(
     user: Annotated[User, Depends(get_current_user)],
+    service: Annotated[OfferTemplatesService, Depends(get_offer_tpls_service)],
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
 ) -> OfferTemplateListResponse:
     """Get offer templates list.
 
     Args:
         user (User): Current user
+        service (OfferTemplatesService): Offer templates service
+        pagination (PaginationParams): Pagination params.
 
     Returns:
         OfferTemplateListResponse: Offer templates list
     """
-    db_offer_tpls = await OfferTemplateInDB.get_all()
-    offer_tpls = [
-        OfferTemplate(**offer_tpl.dict())
-        for offer_tpl in db_offer_tpls
-    ]
-    return OfferTemplateListResponse(offer_tpls=offer_tpls)
+    response = await service.get_offer_tpls(pagination)
+    return OfferTemplateListResponse(
+        offer_tpls=response.items,
+        last=response.last,
+    )
 
 
 @router.get('/{offer_tpl_id}')
 async def get_offer_tpl(
     offer_tpl_id: str,
     user: Annotated[User, Depends(get_current_user)],
+    service: Annotated[OfferTemplatesService, Depends(get_offer_tpls_service)],
 ) -> OfferTemplateResponse:
     """Get offer template by id.
 
     Args:
         offer_tpl_id (str): Offer template id.
         user (User): Current user.
+        service (OfferTemplatesService): Offer templates service.
 
     Raises:
         OfferTemplateNotFound: Raised when the offer template is not found.
@@ -87,13 +75,12 @@ async def get_offer_tpl(
     Returns:
         OfferTemplateResponse: Offer template.
     """
-    db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
-    if not db_offer_tpl:
+    try:
+        offer_tpl = await service.get_offer_tpl(offer_tpl_id)
+    except OfferTemplateNotFoundError:
         raise OfferTemplateNotFound()
 
-    return OfferTemplateResponse(
-        offer_tpl=OfferTemplate(**db_offer_tpl.dict()),
-    )
+    return OfferTemplateResponse(offer_tpl=offer_tpl)
 
 
 # flake8: noqa: E501
@@ -103,15 +90,15 @@ DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml
 @router.get('/{offer_tpl_id}/download')
 async def download_offer_tpl(
     offer_tpl_id: str,
-    drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
+    service: Annotated[OfferTemplatesService, Depends(get_offer_tpls_service)],
     file_format: DocFormat = DocFormat.docx,
 ) -> StreamingResponse:
     """Download offer template file.
 
     Args:
         offer_tpl_id (str): Offer template id.
-        drive (_Drive): Offer templates drive.
         output_format (DocFormat, optional): Output format. Defaults to DocFormat.docx.
+        service (OfferTemplatesService): Offer templates service.
 
     Raises:
         OfferTemplateNotFound: Raised when the offer template is not found.
@@ -120,12 +107,12 @@ async def download_offer_tpl(
     Returns:
         StreamingResponse: Offer template file.
     """
-    db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
-    if not db_offer_tpl:
-        raise OfferTemplateNotFound()
-
-    offer_tpl_stream = get_offer_tpl_file(drive, offer_tpl_id, file_format)
-    if not offer_tpl_stream:
+    try:
+        offer_tpl_stream = await service.get_offer_tpl_file(
+            offer_tpl_id,
+            file_format,
+        )
+    except OfferTemplateNotFoundError:
         raise OfferTemplateNotFound()
 
     return StreamingResponse(
@@ -137,87 +124,54 @@ async def download_offer_tpl(
     )
 
 
-async def update_offer_tpl_file(
-    offer_tpl_id: str,
-    offer_tpl_file: str,
-    drive: _Drive,
-) -> None:
-    """Update offer template file.
-
-    Args:
-        offer_tpl_id (str): Offer template id.
-        offer_tpl_file (str): Offer template file in Base64.
-        drive (_Drive): Offer templates drive.
-
-    Raises:
-        BadOfferTemplateFile: Raised when the offer template file is bad.
-        IncorrectOfferTemplateFile: \
-            Raised when the offer template file is incorrect.
-        OfferTemplateUploadFailed: \
-            Raised when the offer template upload failed.
-    """
-    offer_tpl_data = decode_base64(offer_tpl_file)
-    if not offer_tpl_data:
-        raise BadOfferTemplateFile()
-
-    if not validate_offer_tpl_file(offer_tpl_data):
-        raise IncorrectOfferTemplateFile()
-
-    try:
-        save_offer_tpl_file(drive, offer_tpl_id, offer_tpl_data)
-    except Exception:
-        raise OfferTemplateUploadFailed()
-
-
 @router.post('/')
 async def create_offer_tpl(
     offer_tpl_data: OfferTemplateCreate,
-    drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[OfferTemplatesService, Depends(get_offer_tpls_service)],
 ) -> OfferTemplateResponse:
     """Create offer template.
 
     Args:
         offer_tpl_data (OfferTemplateCreate): Offer template data.
-        drive (_Drive): Offer templates drive.
         admin (User): Admin user.
+        service (OfferTemplatesService): Offer templates service.
+
+    Raises:
+        BadOfferTemplateFile: Raised when the offer template file is bad.
 
     Returns:
         OfferTemplate: Created offer template.
     """
-    offer_tpl_id = generate_id()
+    offer_tpl_file_data = decode_base64(offer_tpl_data.offer_tpl_file)
+    if not offer_tpl_file_data:
+        raise BadOfferTemplateFile()
 
-    await update_offer_tpl_file(
-        offer_tpl_id,
-        offer_tpl_data.offer_tpl_file,
-        drive,
-    )
+    try:
+        offer_tpl = await service.create_offer_tpl(
+            offer_tpl_data.name,
+            offer_tpl_file_data,
+        )
+    except BadOfferTemplateFileError:
+        raise BadOfferTemplateFile()
 
-    db_offer_tpl = OfferTemplateInDB(
-        offer_tpl_id=offer_tpl_id,
-        name=offer_tpl_data.name,
-    )
-    await db_offer_tpl.save()
-
-    return OfferTemplateResponse(
-        offer_tpl=OfferTemplate(**db_offer_tpl.dict()),
-    )
+    return OfferTemplateResponse(offer_tpl=offer_tpl)
 
 
 @router.put('/{offer_tpl_id}')
 async def update_offer_tpl(
     offer_tpl_id: str,
     offer_tpl_data: OfferTemplateUpdate,
-    drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[OfferTemplatesService, Depends(get_offer_tpls_service)],
 ) -> OfferTemplateResponse:
     """Update offer template.
 
     Args:
         offer_tpl_id (str): Offer template id.
         offer_tpl_data (OfferTemplateUpdate): Offer template data.
-        drive (_Drive): Offer templates drive.
         admin (User): Admin user.
+        service (OfferTemplatesService): Offer templates service.
 
     Raises:
         OfferTemplateNotFound: Raised when the offer template is not found.
@@ -225,63 +179,57 @@ async def update_offer_tpl(
     Returns:
         OfferTemplate: Updated offer template.
     """
-    db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
-    if not db_offer_tpl:
+    if offer_tpl_data.offer_tpl_file:
+        offer_tpl_file_data = decode_base64(offer_tpl_data.offer_tpl_file)
+    else:
+        offer_tpl_file_data = None
+
+    try:
+        offer_tpl = await service.update_offer_tpl(
+            offer_tpl_id,
+            offer_tpl_data.name,
+            offer_tpl_file_data,
+        )
+    except OfferTemplateNotFoundError:
         raise OfferTemplateNotFound()
 
-    db_offer_tpl.name = offer_tpl_data.name or db_offer_tpl.name
-    await db_offer_tpl.save()
-
-    if offer_tpl_data.offer_tpl_file:
-        await update_offer_tpl_file(
-            offer_tpl_id,
-            offer_tpl_data.offer_tpl_file,
-            drive,
-        )
-
-    return OfferTemplateResponse(
-        offer_tpl=OfferTemplate(**db_offer_tpl.dict()),
-    )
+    return OfferTemplateResponse(offer_tpl=offer_tpl)
 
 
 @router.delete('/{offer_tpl_id}')
 async def delete_offer_tpl(
     offer_tpl_id: str,
-    drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[OfferTemplatesService, Depends(get_offer_tpls_service)],
 ) -> OfferTemplateResponse:
     """Delete offer template.
 
     Args:
         offer_tpl_id (str): Offer template id.
-        drive (_Drive): Offer templates drive.
         admin (User): Admin user.
+        service (OfferTemplatesService): Offer templates service.
 
     Raises:
         OfferTemplateNotFound: Raised when the offer template is not found.
 
-     Returns:
+    Returns:
         OfferTemplateResponse: Deleted offer template.
     """
-    db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
-    if not db_offer_tpl:
+    try:
+        offer_tpl = await service.delete_offer_tpl(offer_tpl_id)
+    except OfferTemplateNotFoundError:
         raise OfferTemplateNotFound()
 
-    await db_offer_tpl.delete()
-    delete_offer_tpl_file(drive, offer_tpl_id)
-
-    return OfferTemplateResponse(
-        offer_tpl=OfferTemplate(**db_offer_tpl.dict()),
-    )
+    return OfferTemplateResponse(offer_tpl=offer_tpl)
 
 
 @router.post('/{offer_tpl_id}/build')
 async def build_offer_tpl(
     offer_tpl_id: str,
     offer_data: OfferBuild,
-    offers_drive: Annotated[_Drive, Depends(get_offers_drive)],
-    offer_tpls_drive: Annotated[_Drive, Depends(get_offer_tpls_drive)],
     user: Annotated[User, Depends(get_current_user)],
+    service: Annotated[OfferTemplatesService, Depends(get_offer_tpls_service)],
+    offers_service: Annotated[OffersService, Depends(get_offers_service)],
 ) -> BuildedOfferResponse:
     """Fill offer template with data and return filled file.
 
@@ -295,29 +243,17 @@ async def build_offer_tpl(
     Returns:
         StreamingResponse: Filled offer template file.
     """
-    db_offer_tpl = await OfferTemplateInDB.get_or_none(offer_tpl_id)
-    if not db_offer_tpl:
+    try:
+        offer_tpl = await service.get_offer_tpl(offer_tpl_id)
+        offer_tpl_stream = await service.get_offer_tpl_file(offer_tpl_id, DocFormat.docx)
+    except OfferTemplateNotFoundError:
         raise OfferTemplateNotFound()
 
-    offer_tpl_stream = get_offer_tpl_file(
-        offer_tpls_drive,
-        offer_tpl_id,
-        DocFormat.docx,
+    offer_tpl_file = offer_tpl_stream.read()
+    offer = await offers_service.build_offer(
+        name=offer_tpl.name,
+        context=offer_data.context,
+        offer_tpl_file=offer_tpl_file,
     )
-    if not offer_tpl_stream:
-        raise OfferTemplateNotFound()
 
-    offer_tpl_data = offer_tpl_stream.read()
-    filled_offer_tpl_stream = fill_offer_tpl(offer_tpl_data, offer_data.context)
-
-    offer_id = generate_id()
-    db_offer = OfferInDB(
-        offer_id=offer_id,
-        name=db_offer_tpl.name,
-    )
-    save_offer_file(offers_drive, offer_id, filled_offer_tpl_stream)
-    await db_offer.save()
-
-    return BuildedOfferResponse(
-        offer=Offer(**db_offer.dict()),
-    )
+    return BuildedOfferResponse(offer=offer)

@@ -24,7 +24,7 @@
 		companiesLoading = true;
 		const result = await companiesApi.getCompanies();
 		if (result.ok) {
-			companies = result.value;
+			companies = result.value.companies;
 		} else {
 			snackbar.show(result.error.message);
 		}

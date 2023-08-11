@@ -1,13 +1,7 @@
 <script lang="ts">
-	import { WastesAPI } from '$lib/backend/api/wastes';
-	import { WorksAPI } from '$lib/backend/api/works';
-	import type { Waste } from '$lib/backend/models/wastes';
-	import type { Work } from '$lib/backend/models/works';
 	import Snackbar from '$lib/components/common/Snackbar.svelte';
 	import Button, { Icon } from '@smui/button';
 	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
-	import LinearProgress from '@smui/linear-progress';
-	import { onMount } from 'svelte';
 	import type { GeneralRow } from '../types';
 	import AddGeneralRowDialog from './AddGeneralRowDialog.svelte';
 
@@ -24,41 +18,9 @@
 		}
 	}
 
-	const wastesApi = new WastesAPI(token);
-	const worksApi = new WorksAPI(token);
-
-	let availableWastes: Waste[] = [];
-	let availableWorks: Work[] = [];
-
-	let dataLoaded = false;
-
-	async function updateWastes() {
-		const result = await wastesApi.getWastes();
-		if (result.ok) {
-			availableWastes = result.value;
-		} else {
-			snackbar.show(result.error.message);
-		}
-	}
-
-	async function updateWorks() {
-		const result = await worksApi.getWorks();
-		if (result.ok) {
-			availableWorks = result.value;
-		} else {
-			snackbar.show(result.error.message);
-		}
-	}
-
 	let addRowDialogOpen = false;
 
 	let snackbar: Snackbar;
-
-	onMount(async () => {
-		dataLoaded = false;
-		await Promise.all([updateWastes(), updateWorks()]);
-		dataLoaded = true;
-	});
 </script>
 
 <div class="wastes-table">
@@ -84,12 +46,6 @@
 					</Row>
 				{/each}
 			</Body>
-			<LinearProgress
-				indeterminate
-				bind:closed={dataLoaded}
-				aria-label="Загрузка..."
-				slot="progress"
-			/>
 		</DataTable>
 		<div class="offer-total-container">
 			<b>Итого:</b>
@@ -110,9 +66,8 @@
 </div>
 
 <AddGeneralRowDialog
+    {token}
 	bind:open={addRowDialogOpen}
-	{availableWastes}
-	{availableWorks}
 	bind:rowNumber={nextRowNumber}
 	onConfirm={(wasteRow) => {
 		generalRows = [...generalRows, wasteRow];

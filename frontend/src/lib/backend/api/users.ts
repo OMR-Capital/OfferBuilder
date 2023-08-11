@@ -1,12 +1,14 @@
 import { BaseAPI, type Result } from '../base_api';
 import type { User } from '../models/users';
+import { asUrlParams, defaultPaginationParams, type PaginationParams } from '../pagination';
 
 interface UserResponse {
 	user: User;
 }
 
-interface UsersResponse {
+export interface UsersResponse {
 	users: User[];
+	last: string | null;
 }
 
 interface UserUpdate {
@@ -51,12 +53,11 @@ export class UsersAPI extends BaseAPI {
 		return result;
 	}
 
-	async getUsers(): Promise<Result<User[]>> {
-		const result = (await this.fetchApi('/users', 'GET')) as Result<UsersResponse>;
-		if (result.ok) {
-			return { ok: true, value: result.value.users };
-		}
-		return result;
+	async getUsers(
+		pagination: PaginationParams = defaultPaginationParams
+	): Promise<Result<UsersResponse>> {
+		const url = `/users?${asUrlParams(pagination)}`;
+		return (await this.fetchApi(url, 'GET')) as Result<UsersResponse>;
 	}
 
 	async deleteUser(uid: string): Promise<Result<User>> {

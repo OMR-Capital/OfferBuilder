@@ -14,7 +14,11 @@
 </div>
 
 <style>
-	.block-title {
+	.dialog-block {
+        max-width: 100%;
+    }
+
+    .block-title {
 		margin-bottom: 1rem;
 	}
 </style>

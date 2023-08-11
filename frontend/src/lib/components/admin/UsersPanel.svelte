@@ -7,9 +7,10 @@
 	import Snackbar from '$lib/components/common/Snackbar.svelte';
 	import { userRoleName } from '$lib/texts';
 	import Button, { Icon } from '@smui/button';
-	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
+	import { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
+	import PaginatedTable from '../common/PaginatedTable.svelte';
 	import Panel from '../common/Panel.svelte';
 
 	export let token: string;
@@ -21,15 +22,21 @@
 	let users: User[] = [];
 	let usersLoaded = false;
 
-	async function updateUsers() {
+	const limit = 10;
+	let last: string | null = null;
+    let table: PaginatedTable;
+
+	async function updateUsers(limit: number, last: string | null): Promise<string | null> {
 		usersLoaded = false;
-		const result = await usersApi.getUsers();
+		const result = await usersApi.getUsers({ limit, last });
+		usersLoaded = true;
 		if (result.ok) {
-			users = result.value;
+			users = result.value.users;
+			return result.value.last;
 		} else {
 			snackbar.show(result.error.message);
 		}
-		usersLoaded = true;
+		return null;
 	}
 
 	let userDeleting: Record<string, boolean> = {};
@@ -43,7 +50,7 @@
 		userDeleting[uid] = true;
 		const result = await usersApi.deleteUser(uid);
 		if (result.ok) {
-			updateUsers();
+            await table.reloadPage();
 		} else {
 			snackbar.show(result.error.message);
 		}
@@ -52,13 +59,15 @@
 
 	let createDialogOpen = false;
 
-	onMount(updateUsers);
+	onMount(async () => {
+		await table.firstPage();
+	});
 </script>
 
 <Panel title="Пользователи">
 	<div class="table-container">
-		<DataTable table$aria-label="Список пользователей" style="width: 100%;">
-			<Head>
+		<PaginatedTable bind:this={table} {limit} bind:last updateItems={updateUsers}>
+			<Head slot="head">
 				<Row>
 					<Cell>ID</Cell>
 					<Cell>Имя</Cell>
@@ -67,7 +76,7 @@
 					<Cell />
 				</Row>
 			</Head>
-			<Body>
+			<Body slot="body">
 				{#each users as user}
 					<Row>
 						<Cell>{user.uid}</Cell>
@@ -90,7 +99,7 @@
 				aria-label="Загрузка..."
 				slot="progress"
 			/>
-		</DataTable>
+		</PaginatedTable>
 	</div>
 	<div class="add-user-container">
 		<Button
@@ -107,4 +116,8 @@
 
 <Snackbar bind:this={snackbar} />
 
-<UserCreateDialog {token} bind:open={createDialogOpen} onCreate={updateUsers} />
+<UserCreateDialog
+	{token}
+	bind:open={createDialogOpen}
+	onCreate={async () => table.reloadPage()}
+/>

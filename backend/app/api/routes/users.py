@@ -7,7 +7,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.api.dependencies import get_admin, get_current_user
+from app.api.dependencies.auth import get_admin, get_current_user
+from app.api.dependencies.users import get_users_service
 from app.api.exceptions.users import LoginAlreadyExists, UserNotFound
 from app.api.schemes.users import (
     MyUserUpdate,
@@ -18,9 +19,12 @@ from app.api.schemes.users import (
     UserResponse,
     UserUpdate,
 )
-from app.core.auth import generate_password, get_password_hash
-from app.core.users import check_login, generate_uid
-from app.db.user import UserInDB
+from app.core.pagination import PaginationParams
+from app.core.users import (
+    LoginAlreadyExistsError,
+    UserNotFoundError,
+    UsersService,
+)
 from app.models.user import User
 
 router = APIRouter(prefix='/users', tags=['users'])
@@ -48,12 +52,14 @@ async def get_my_user(
 async def update_my_user(
     user_data: MyUserUpdate,
     user: Annotated[User, Depends(get_current_user)],
+    service: Annotated[UsersService, Depends(get_users_service)],
 ) -> UserResponse:
     """Update current user.
 
     Args:
         user_data (MyUserUpdate): User data. All fields are optional.
         user (User): Authorized user model.
+        service (UsersService): Users service.
 
     Raises:
         UserNotFound: If user not found in database.
@@ -62,31 +68,30 @@ async def update_my_user(
     Returns:
         UserResponse: Updated user object.
     """
-    db_user = await UserInDB.get_or_none(user.uid)
-    if not db_user:
+    try:
+        user = await service.update_user(
+            uid=user.uid,
+            name=user_data.name,
+            login=user_data.login,
+        )
+    except UserNotFoundError:
         raise UserNotFound()
+    except LoginAlreadyExistsError:
+        raise LoginAlreadyExists()
 
-    if user_data.login:
-        login_unique = await check_login(user_data.login)
-        if not login_unique:
-            raise LoginAlreadyExists()
-
-        db_user.login = user_data.login or db_user.login
-
-    db_user.name = user_data.name or db_user.name
-    await db_user.save()
-
-    return UserResponse(user=UserOut(**db_user.dict()))
+    return UserResponse(user=UserOut(**user.dict()))
 
 
 @router.patch('/me/password')
 async def update_my_user_password(
     user: Annotated[User, Depends(get_current_user)],
+    service: Annotated[UsersService, Depends(get_users_service)],
 ) -> UserPasswordResponse:
     """Generate new password for current user.
 
     Args:
         user (User): Authorized user model.
+        service (UsersService): Users service.
 
     Raises:
         UserNotFound: If user not found in database.
@@ -94,16 +99,13 @@ async def update_my_user_password(
     Returns:
         UserPasswordResponse: User object and new password.
     """
-    db_user = await UserInDB.get_or_none(user.uid)
-    if not db_user:
+    try:
+        user, password = await service.update_user_password(uid=user.uid)
+    except UserNotFoundError:
         raise UserNotFound()
 
-    password = generate_password()
-    db_user.password_hash = get_password_hash(password)
-    await db_user.save()
-
     return UserPasswordResponse(
-        user=UserOut(**db_user.dict()),
+        user=UserOut(**user.dict()),
         password=password,
     )
 
@@ -111,11 +113,15 @@ async def update_my_user_password(
 @router.get('/')
 async def get_users(
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[UsersService, Depends(get_users_service)],
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
 ) -> UserListResponse:
     """Get all users.
 
     Args:
         admin (User): Current user must be an admin.
+        service (UsersService): Users service.
+        pagination (PaginationParams): Pagination params.
 
     Raises:
         AdminRightsRequired: If current user is not an admin.
@@ -123,21 +129,23 @@ async def get_users(
     Returns:
         UserListResponse: List of users.
     """
-    db_user = await UserInDB.get_all()
-    users = [UserOut(**user.dict()) for user in db_user]
-    return UserListResponse(users=users)
+    response = await service.get_users(pagination)
+    out_users = [UserOut(**user.dict()) for user in response.items]
+    return UserListResponse(users=out_users, last=response.last)
 
 
 @router.get('/{uid}')
 async def get_user(
     uid: str,
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[UsersService, Depends(get_users_service)],
 ) -> UserResponse:
     """Get user by id.
 
     Args:
         uid (str): User id.
         admin (User): Current user must be an admin.
+        service (UsersService): Users service.
 
     Raises:
         AdminRightsRequired: If current user is not an admin.
@@ -146,17 +154,19 @@ async def get_user(
     Returns:
         UserResponse: User object.
     """
-    db_user = await UserInDB.get_or_none(uid)
-    if not db_user:
+    try:
+        user = await service.get_user(uid=uid)
+    except UserNotFoundError:
         raise UserNotFound()
 
-    return UserResponse(user=UserOut(**db_user.dict()))
+    return UserResponse(user=UserOut(**user.dict()))
 
 
 @router.post('/')
 async def create_user(
     user_data: UserCreate,
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[UsersService, Depends(get_users_service)],
 ) -> UserPasswordResponse:
     """Create user.
 
@@ -169,6 +179,7 @@ async def create_user(
     Args:
         user_data (UserCreate): User name and role.
         admin (User): Current user must be an admin.
+        service (UsersService): Users service.
 
     Raises:
         AdminRightsRequired: If current user is not an admin.
@@ -176,21 +187,12 @@ async def create_user(
     Returns:
         UserPasswordResponse: Created user object and generated password.
     """
-    password = generate_password()
-    password_hash = get_password_hash(password)
-    uid = generate_uid()
-
-    db_user = UserInDB(
-        uid=uid,
-        login=uid,
+    user, password = await service.create_user(
         name=user_data.name,
-        password_hash=password_hash,
         role=user_data.role,
     )
-    await db_user.save()
-
     return UserPasswordResponse(
-        user=UserOut(**db_user.dict()),
+        user=UserOut(**user.dict()),
         password=password,
     )
 
@@ -200,6 +202,7 @@ async def update_user(
     uid: str,
     user_data: UserUpdate,
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[UsersService, Depends(get_users_service)],
 ) -> UserResponse:
     """Update user data.
 
@@ -207,6 +210,7 @@ async def update_user(
         uid (str): User id.
         user_data (UserUpdate): User data. All fields are optional.
         admin (User): Current user must be an admin.
+        service (UsersService): Users service.
 
     Raises:
         UserNotFound: If user not found.
@@ -215,33 +219,33 @@ async def update_user(
     Returns:
         UserResponse: Updated user object.
     """
-    db_user = await UserInDB.get_or_none(uid)
-    if not db_user:
+    try:
+        user = await service.update_user(
+            uid=uid,
+            name=user_data.name,
+            login=user_data.login,
+            role=user_data.role,
+        )
+    except UserNotFoundError:
         raise UserNotFound()
+    except LoginAlreadyExistsError:
+        raise LoginAlreadyExists()
 
-    if user_data.login:
-        if not check_login(user_data.login):
-            raise LoginAlreadyExists()
-
-        db_user.login = user_data.login or db_user.login
-
-    db_user.name = user_data.name or db_user.name
-    db_user.role = user_data.role or db_user.role
-    await db_user.save()
-
-    return UserResponse(user=UserOut(**db_user.dict()))
+    return UserResponse(user=UserOut(**user.dict()))
 
 
 @router.patch('/{uid}/password')
 async def update_user_password(
     uid: str,
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[UsersService, Depends(get_users_service)],
 ) -> UserPasswordResponse:
     """Generate new password for user.
 
     Args:
         uid (str): User id.
         admin (User): Current user must be an admin.
+        service (UsersService): Users service.
 
     Raises:
         AdminRightsRequired: If current user is not an admin.
@@ -250,16 +254,13 @@ async def update_user_password(
     Returns:
         UserPasswordResponse: User object and new password.
     """
-    db_user = await UserInDB.get_or_none(uid)
-    if not db_user:
+    try:
+        user, password = await service.update_user_password(uid=uid)
+    except UserNotFoundError:
         raise UserNotFound()
 
-    password = generate_password()
-    db_user.password_hash = get_password_hash(password)
-    await db_user.save()
-
     return UserPasswordResponse(
-        user=UserOut(**db_user.dict()),
+        user=UserOut(**user.dict()),
         password=password,
     )
 
@@ -268,12 +269,14 @@ async def update_user_password(
 async def delete_user(
     uid: str,
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[UsersService, Depends(get_users_service)],
 ) -> UserResponse:
     """Delete user.
 
     Args:
         uid (str): User id.
         admin (User): Current user must be an admin.
+        service (UsersService): Users service.
 
     Raises:
         AdminRightsRequired: If current user is not an admin.
@@ -282,10 +285,9 @@ async def delete_user(
     Returns:
         UserResponse: Deleted user object.
     """
-    db_user = await UserInDB.get_or_none(uid)
-    if not db_user:
+    try:
+        user = await service.delete_user(uid=uid)
+    except UserNotFoundError:
         raise UserNotFound()
 
-    await db_user.delete()
-
-    return UserResponse(user=UserOut(**db_user.dict()))
+    return UserResponse(user=UserOut(**user.dict()))

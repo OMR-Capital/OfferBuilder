@@ -6,9 +6,10 @@
 	import IconButton from '$lib/components/common/IconButton.svelte';
 	import Snackbar from '$lib/components/common/Snackbar.svelte';
 	import Button, { Icon } from '@smui/button';
-	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
+	import { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
+	import PaginatedTable from '../common/PaginatedTable.svelte';
 	import Panel from '../common/Panel.svelte';
 
 	export let token: string;
@@ -20,15 +21,21 @@
 	let companies: Company[] = [];
 	let companiesLoaded = false;
 
-	async function updateCompanies() {
+	let limit = 10;
+	let last: string | null = null;
+	let table: PaginatedTable;
+
+	async function updateCompanies(limit: number, last: string | null): Promise<string | null> {
 		companiesLoaded = false;
-		const result = await companiesApi.getCompanies();
+		const result = await companiesApi.getCompanies({ limit, last });
+		companiesLoaded = true;
 		if (result.ok) {
-			companies = result.value;
+			companies = result.value.companies;
+			return result.value.last;
 		} else {
 			snackbar.show(result.error.message);
 		}
-		companiesLoaded = true;
+		return null;
 	}
 
 	let companyDeleting: Record<string, boolean> = {};
@@ -42,7 +49,7 @@
 		companyDeleting[company_id] = true;
 		const result = await companiesApi.deleteCompany(company_id);
 		if (result.ok) {
-			updateCompanies();
+			await table.reloadPage();
 		} else {
 			snackbar.show(result.error.message);
 		}
@@ -51,20 +58,22 @@
 
 	let createDialogOpen = false;
 
-	onMount(updateCompanies);
+	onMount(async () => {
+		await table.firstPage();
+	});
 </script>
 
 <Panel title="Организации">
 	<div class="table-container">
-		<DataTable table$aria-label="Список организаций" style="width: 100%;">
-			<Head>
+		<PaginatedTable bind:this={table} {limit} bind:last updateItems={updateCompanies}>
+			<Head slot="head">
 				<Row>
 					<Cell>ID</Cell>
 					<Cell>Название</Cell>
 					<Cell />
 				</Row>
 			</Head>
-			<Body>
+			<Body slot="body">
 				{#each companies as company}
 					<Row>
 						<Cell>{company.company_id}</Cell>
@@ -85,7 +94,7 @@
 				aria-label="Загрузка..."
 				slot="progress"
 			/>
-		</DataTable>
+		</PaginatedTable>
 	</div>
 	<div class="add-company-container">
 		<Button
@@ -102,4 +111,8 @@
 
 <Snackbar bind:this={snackbar} />
 
-<CompanyCreateDialog {token} bind:open={createDialogOpen} onCreate={updateCompanies} />
+<CompanyCreateDialog
+	{token}
+	bind:open={createDialogOpen}
+	onCreate={async () => await table.reloadPage()}
+/>

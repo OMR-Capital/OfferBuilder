@@ -31,7 +31,7 @@
 		offerTplsLoading = true;
 		const result = await offerTplsApi.getOfferTpls();
 		if (result.ok) {
-			offerTpls = result.value;
+			offerTpls = result.value.offer_tpls;
 		} else {
 			snackbar.show(result.error.message);
 		}

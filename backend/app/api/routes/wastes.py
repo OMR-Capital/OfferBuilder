@@ -7,18 +7,23 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.api.dependencies import get_admin, get_current_user
-from app.api.exceptions.wastes import WasteNotFound
+from app.api.dependencies.auth import get_admin, get_current_user
+from app.api.dependencies.wastes import get_wastes_service
+from app.api.exceptions.wastes import BadFKKOCode, WasteNotFound
 from app.api.schemes.wastes import (
     WasteCreate,
     WasteListResponse,
     WasteResponse,
     WasteUpdate,
 )
-from app.core.models import generate_id
-from app.db.waste import WasteInDB
+from app.core.pagination import PaginationParams
+from app.core.wastes import (
+    BadFKKOCodeError,
+    WasteNotFoundError,
+    WastesFilter,
+    WastesService,
+)
 from app.models.user import User
-from app.models.waste import Waste
 
 router = APIRouter(prefix='/wastes', tags=['wastes'])
 
@@ -26,30 +31,40 @@ router = APIRouter(prefix='/wastes', tags=['wastes'])
 @router.get('/')
 async def get_wastes(
     user: Annotated[User, Depends(get_current_user)],
+    service: Annotated[WastesService, Depends(get_wastes_service)],
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
+    wastes_filter: Annotated[WastesFilter, Depends(WastesFilter)],
 ) -> WasteListResponse:
     """Get all wastes.
 
     Args:
         user (User): Current authorized user.
+        service (WastesService): Wastes service.
+        pagination (PaginationParams): Pagination params.
+        wastes_filter (WastesFilter): Wastes filter.
 
     Returns:
         WasteListResponse: List of wastes.
     """
-    db_wastes = await WasteInDB.get_all()
-    wastes = [Waste(**waste.dict()) for waste in db_wastes]
-    return WasteListResponse(wastes=wastes)
+    response = await service.get_wastes(pagination, wastes_filter)
+    return WasteListResponse(
+        wastes=response.items,
+        last=response.last,
+    )
 
 
 @router.get('/{waste_id}')
 async def get_waste(
     waste_id: str,
     user: Annotated[User, Depends(get_current_user)],
+    service: Annotated[WastesService, Depends(get_wastes_service)],
 ) -> WasteResponse:
     """Get waste by id.
 
     Args:
         waste_id (str): Waste id.
         user (User): Current authorized user.
+        service (WastesService): Wastes service.
 
     Raises:
         WasteNotFound: Raised when the waste is not found.
@@ -57,36 +72,42 @@ async def get_waste(
     Returns:
         WasteResponse: Waste.
     """
-    db_waste = await WasteInDB.get_or_none(waste_id)
-    if not db_waste:
+    try:
+        waste = await service.get_waste(waste_id)
+    except WasteNotFoundError:
         raise WasteNotFound()
 
-    return WasteResponse(waste=Waste(**db_waste.dict()))
+    return WasteResponse(waste=waste)
 
 
 @router.post('/')
 async def create_waste(
     waste_data: WasteCreate,
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[WastesService, Depends(get_wastes_service)],
 ) -> WasteResponse:
     """Create a new waste.
 
     Args:
         waste_data (WasteCreate): Waste data.
         admin (User): Current user must be an admin.
+        service (WastesService): Wastes service.
+
+    Raises:
+        BadFKKOCode: Raised when the FKKO code is invalid.
 
     Returns:
         WasteResponse: Created waste.
     """
-    waste_id = generate_id()
-    db_waste = WasteInDB(
-        waste_id=waste_id,
-        name=waste_data.name,
-        fkko_code=waste_data.fkko_code,
-    )
-    await db_waste.save()
+    try:
+        waste = await service.create_waste(
+            name=waste_data.name,
+            fkko_code=waste_data.fkko_code,
+        )
+    except BadFKKOCodeError:
+        raise BadFKKOCode()
 
-    return WasteResponse(waste=Waste(**db_waste.dict()))
+    return WasteResponse(waste=waste)
 
 
 @router.put('/{waste_id}')
@@ -108,27 +129,30 @@ async def update_waste(
     Returns:
         WasteResponse: Updated waste.
     """
-    db_waste = await WasteInDB.get_or_none(waste_id)
-    if not db_waste:
+    try:
+        waste = await WastesService().update_waste(
+            waste_id=waste_id,
+            name=waste_data.name,
+            fkko_code=waste_data.fkko_code,
+        )
+    except WasteNotFoundError:
         raise WasteNotFound()
 
-    db_waste.name = waste_data.name or db_waste.name
-    db_waste.fkko_code = waste_data.fkko_code or db_waste.fkko_code
-    await db_waste.save()
-
-    return WasteResponse(waste=Waste(**db_waste.dict()))
+    return WasteResponse(waste=waste)
 
 
 @router.delete('/{waste_id}')
 async def delete_waste(
     waste_id: str,
     admin: Annotated[User, Depends(get_admin)],
+    service: Annotated[WastesService, Depends(get_wastes_service)],
 ) -> WasteResponse:
     """Delete waste.
 
     Args:
         waste_id (str): Waste id.
         admin (User): Current user must be an admin.
+        service (WastesService): Wastes service.
 
     Raises:
         WasteNotFound: Raised when the waste is not found.
@@ -136,9 +160,9 @@ async def delete_waste(
     Returns:
         WasteResponse: Deleted waste.
     """
-    db_waste = await WasteInDB.get_or_none(waste_id)
-    if not db_waste:
+    try:
+        waste = await service.delete_waste(waste_id)
+    except WasteNotFoundError:
         raise WasteNotFound()
 
-    await db_waste.delete()
-    return WasteResponse(waste=Waste(**db_waste.dict()))
+    return WasteResponse(waste=waste)

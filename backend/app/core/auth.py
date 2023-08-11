@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from secrets import token_urlsafe
 from typing import Any, Optional
 
+from deta import Base
 from jose import jwt
 from passlib.context import CryptContext
 
@@ -13,60 +14,10 @@ from app.core.config import (
     ROOT_LOGIN,
     ROOT_PASSWORD,
 )
-from app.db.user import UserInDB
+from app.core.deta import serialize_model
 from app.models.user import User, UserRole
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-
-
-async def authorize_user(login: str, password: str) -> Optional[User]:
-    """Verify user credentials.
-
-    Args:
-        login (str): User login.
-        password (str): User password.
-
-    Returns:
-        Optional[User]: User instance if credentials are valid.
-    """
-    root_user = await register_root_user()
-    if login == ROOT_LOGIN and password == ROOT_PASSWORD:
-        return root_user
-
-    # ODetaM queries are not typed properly, so we need to use ignore
-    users_with_login = await UserInDB.query(UserInDB.login == login)
-    if not users_with_login:
-        return None
-
-    db_user = users_with_login[0]
-
-    if not verify_password(password, db_user.password_hash):
-        return None
-
-    return User(**db_user.dict())
-
-
-async def register_root_user() -> User:
-    """Register root user.
-
-    If root user already exists, do nothing.
-
-    See ROOT_LOGIN and ROOT_PASSWORD in Spacefile.
-
-    Returns:
-        User: User instance.
-    """
-    db_user = UserInDB(
-        uid=ROOT_LOGIN,
-        login=ROOT_LOGIN,
-        name='Root',
-        role=UserRole.superuser,
-        password_hash=get_password_hash(ROOT_PASSWORD),
-    )
-    await db_user.save()
-
-    return User(**db_user.dict())
-
 
 ALGORITHM = 'HS256'
 
@@ -145,3 +96,69 @@ def get_password_hash(password: str) -> str:
         str: Hashed password.
     """
     return pwd_context.hash(password)
+
+
+class BadCredentialsError(Exception):
+    """Bad credentials error."""
+
+
+class AuthService(object):
+    """Auth service.
+
+    Provides methods for user authorization.
+    """
+
+    def __init__(self) -> None:
+        """Initialize auth service."""
+        self.base = Base('users')
+
+    async def authorize_user(self, login: str, password: str) -> User:
+        """Verify user credentials.
+
+        New root user will be created and returned if user is root.
+
+        Args:
+            login (str): User login.
+            password (str): User password.
+
+        Raises:
+            BadCredentialsError: If credentials are invalid.
+
+        Returns:
+            User: User instance if credentials are valid.
+        """
+        root_user = await self._register_root_user()
+        if login == ROOT_LOGIN and password == ROOT_PASSWORD:
+            return root_user
+
+        users_with_login = self.base.fetch({'login': login}).items
+        if not users_with_login:
+            raise BadCredentialsError()
+
+        user = User(**users_with_login[0])
+
+        if not verify_password(password, user.password_hash):
+            raise BadCredentialsError()
+
+        return user
+
+    async def _register_root_user(self) -> User:
+        """Register root user.
+
+        If root user already exists, do nothing.
+
+        See ROOT_LOGIN and ROOT_PASSWORD in Spacefile.
+
+        Returns:
+            User: User instance.
+        """
+        user = User(
+            uid=ROOT_LOGIN,
+            login=ROOT_LOGIN,
+            name='Root',
+            role=UserRole.superuser,
+            password_hash=get_password_hash(ROOT_PASSWORD),
+        )
+        self.base.put(serialize_model(user), user.uid)
+
+        return User(**user.dict())

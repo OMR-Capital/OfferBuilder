@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Dialog, { Content, Title } from '@smui/dialog';
+	import Dialog, { Content, Header, Title } from '@smui/dialog';
 
 	export let open: boolean;
 	export let title: string;
@@ -12,8 +12,11 @@
 	aria-labelledby="dialog-title"
 	aria-describedby="dialog-content"
 	on:SMUIDialog:closed={closeHandler}
+	{...$$restProps}
 >
-	<Title id="dialog-title">{title}</Title>
+	<Header>
+		<Title id="title">{title}</Title>
+	</Header>
 	<Content id="dialog-content">
 		<div class="dialog-content">
 			<slot />
@@ -26,13 +29,13 @@
 		display: flex;
 		flex-direction: column;
 		gap: 2rem;
-		padding: 2rem;
-		width: 30rem;
+		padding: 1rem 2rem 2rem 2rem;
+		min-width: 30rem;
 	}
 
-    @media (max-width: 600px) {
-        .dialog-content {
-            width: auto;
-        }
-    }
+	@media (max-width: 600px) {
+		.dialog-content {
+			width: auto;
+		}
+	}
 </style>

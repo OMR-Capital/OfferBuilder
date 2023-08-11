@@ -3,9 +3,10 @@
 	import type { Waste } from '$lib/backend/models/wastes';
 	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 	import IconButton from '$lib/components/common/IconButton.svelte';
+	import PaginatedTable from '$lib/components/common/PaginatedTable.svelte';
 	import Snackbar from '$lib/components/common/Snackbar.svelte';
 	import Button, { Icon } from '@smui/button';
-	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
+	import { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
 	import Panel from '../common/Panel.svelte';
@@ -20,15 +21,21 @@
 	let wastes: Waste[] = [];
 	let wastesLoaded = false;
 
-	async function updateWastes() {
+	const limit = 10;
+	let last: string | null = null;
+	let table: PaginatedTable;
+
+	async function updateWastes(limit: number, last: string | null): Promise<string | null> {
 		wastesLoaded = false;
-		const result = await wastesApi.getWastes();
+		const result = await wastesApi.getWastes({ limit, last });
+		wastesLoaded = true;
 		if (result.ok) {
-			wastes = result.value;
+			wastes = result.value.wastes;
+			return result.value.last;
 		} else {
 			snackbar.show(result.error.message);
 		}
-		wastesLoaded = true;
+		return null;
 	}
 
 	let wasteDeleting: Record<string, boolean> = {};
@@ -42,7 +49,7 @@
 		wasteDeleting[waste_id] = true;
 		const result = await wastesApi.deleteWaste(waste_id);
 		if (result.ok) {
-			updateWastes();
+			await table.reloadPage();
 		} else {
 			snackbar.show(result.error.message);
 		}
@@ -51,13 +58,15 @@
 
 	let createDialogOpen = false;
 
-	onMount(updateWastes);
+	onMount(async () => {
+		await table.firstPage();
+	});
 </script>
 
 <Panel title="Отходы">
 	<div class="table-container">
-		<DataTable table$aria-label="Список отходов" style="width: 100%;">
-			<Head>
+		<PaginatedTable bind:this={table} {limit} bind:last updateItems={updateWastes}>
+			<Head slot="head">
 				<Row>
 					<Cell>ID</Cell>
 					<Cell>Наименование</Cell>
@@ -65,11 +74,11 @@
 					<Cell />
 				</Row>
 			</Head>
-			<Body>
+			<Body slot="body">
 				{#each wastes as waste}
 					<Row>
 						<Cell>{waste.waste_id}</Cell>
-						<Cell style="width: 100%">{waste.name}</Cell>
+						<Cell style="width: 100%;">{waste.name}</Cell>
 						<Cell>{waste.fkko_code}</Cell>
 						<Cell>
 							{#if wasteDeleting[waste.waste_id]}
@@ -87,7 +96,7 @@
 				aria-label="Загрузка..."
 				slot="progress"
 			/>
-		</DataTable>
+		</PaginatedTable>
 	</div>
 	<div class="add-waste-container">
 		<Button
@@ -104,4 +113,8 @@
 
 <Snackbar bind:this={snackbar} />
 
-<WasteCreateDialog {token} bind:open={createDialogOpen} onCreate={updateWastes} />
+<WasteCreateDialog
+	{token}
+	bind:open={createDialogOpen}
+	onCreate={async () => await table.reloadPage()}
+/>

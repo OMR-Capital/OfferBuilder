@@ -4,9 +4,10 @@ This model represent type of waste that company can recycle.
 WasteItems are passed into offer table.
 """
 
-from pydantic import BaseModel, validator
+import re
+import string
 
-from app.core.wastes import validate_fkko_code
+from pydantic import BaseModel
 
 
 class Waste(BaseModel):
@@ -18,29 +19,45 @@ class Waste(BaseModel):
     # Waste name
     name: str
 
+    # Waste name normalized for search
+    normalized_name: str
+
     # Waste FKKO code
     fkko_code: str
 
-    @validator('fkko_code')
+    # Waste FKKO code normalized for search
+    normalized_fkko_code: str
+
     @classmethod
-    def validate_fkko_code(cls, value: str) -> str:
-        """Validate FKKO code.
+    def normalize_name(cls, name: str) -> str:
+        """Get name normalized for search.
 
-        See `app.core.wastes.validate_fkko_code` for more information.
-
-        P.S.
-        That way used due to ODetaM limitations.
+        Remove punctuation and convert to lowercase.
 
         Args:
-            value (str): FKKO code.
-
-        Raises:
-            ValueError: Raised when FKKO code is invalid.
+            name (str): Name.
 
         Returns:
-            str: Valid FKKO code.
+            str: Normalized name.
         """
-        if validate_fkko_code(value):
-            return value
+        name = re.sub(
+            '[{punctuation}]'.format(punctuation=string.punctuation),
+            ' ',
+            name,
+        )
+        name = re.sub(r'\s+', ' ', name)
+        return name.lower()
 
-        raise ValueError('Invalid FKKO code')
+    @classmethod
+    def normalize_fkko_code(cls, fkko_code: str) -> str:
+        """Get FKKO code normalized for search.
+
+        Remove spaces.
+
+        Args:
+            fkko_code (str): FKKO code.
+
+        Returns:
+            str: Normalized FKKO code.
+        """
+        return fkko_code.replace(' ', '')

@@ -1,22 +1,23 @@
 import { BaseAPI, type Result } from '../base_api';
 import { FileFormat } from '../models/docx';
 import type { Offer } from '../models/offers';
+import { asUrlParams, defaultPaginationParams, type PaginationParams } from '../pagination';
 
 interface OfferResponse {
 	offer: Offer;
 }
 
-interface OffersResponse {
+export interface OffersResponse {
 	offers: Offer[];
+    last: string | null;
 }
 
 export class OffersAPI extends BaseAPI {
-	async getOffers(): Promise<Result<Offer[]>> {
-		const result = (await this.fetchApi('/offers', 'GET')) as Result<OffersResponse>;
-		if (result.ok) {
-			return { ok: true, value: result.value.offers };
-		}
-		return result;
+    async getOffers(
+        pagination: PaginationParams = defaultPaginationParams
+    ): Promise<Result<OffersResponse>> {
+        const url = `/offers?${asUrlParams(pagination)}`;
+		return (await this.fetchApi(url, 'GET')) as Result<OffersResponse>;
 	}
 
 	async deleteOffer(offerId: string): Promise<Result<Offer>> {

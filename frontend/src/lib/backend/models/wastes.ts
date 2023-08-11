@@ -10,3 +10,14 @@ export interface Waste {
 export function validateFKKOCode(fkko_code: string): boolean {
 	return /^(\d| )+$/.test(fkko_code);
 }
+
+export function normalizeName(name: string): string {
+	return name
+		.toLowerCase()
+        .replace(/[^\w а-яё]/g, ' ')
+        .replace(/\s+/g, ' ')
+}
+
+export function normalizeFKKOCode(fkko_code: string): string {
+    return fkko_code.replace(/ /g, '');
+}
