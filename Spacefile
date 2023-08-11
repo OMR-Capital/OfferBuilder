@@ -28,3 +28,6 @@ micros:
     src: ./frontend
     engine: svelte-kit
     public: true
+    presets:
+      env:
+        - name: "ACCESS_TOKEN_EXPIRE_MINUTES"
