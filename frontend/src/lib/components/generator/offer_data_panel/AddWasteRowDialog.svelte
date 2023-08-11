@@ -96,7 +96,7 @@
 	function getWasteLabel(waste: Waste | undefined): string {
 		if (!waste) return '';
 
-		const wasteLabel = `${waste.name} (${waste.fkko_code})`;
+		const wasteLabel = waste.fkko_code ? `${waste.name} (${waste.fkko_code})` : waste.name;
 		return wasteLabel;
 	}
 
