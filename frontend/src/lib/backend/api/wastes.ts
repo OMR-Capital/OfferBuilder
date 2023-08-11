@@ -16,11 +16,39 @@ interface WasteCreate {
 	fkko_code: string;
 }
 
+interface WastesFilter {
+	name?: string;
+	name_contains?: string;
+	fkko_code?: string;
+	fkko_code_prefix?: string;
+}
+
+function filterToURLParams(filter: WastesFilter): string {
+	const params = [];
+	if (filter.name) {
+		params.push(`name=${filter.name}`);
+	}
+	if (filter.name_contains) {
+		params.push(`name_contains=${filter.name_contains}`);
+	}
+	if (filter.fkko_code) {
+		params.push(`fkko_code=${filter.fkko_code}`);
+	}
+	if (filter.fkko_code_prefix) {
+		params.push(`fkko_code_prefix=${filter.fkko_code_prefix}`);
+	}
+	return params.join('&');
+}
+
 export class WastesAPI extends BaseAPI {
 	async getWastes(
-		pagination: PaginationParams = defaultPaginationParams
+		pagination: PaginationParams = defaultPaginationParams,
+		filter: WastesFilter | null = null
 	): Promise<Result<WastesResponse>> {
-		const url = `/wastes?${asUrlParams(pagination)}`;
+		let url = `/wastes?${asUrlParams(pagination)}`;
+		if (filter) {
+			url += `&${filterToURLParams(filter)}`;
+		}
 		return (await this.fetchApi(url, 'GET')) as Result<WastesResponse>;
 	}
 

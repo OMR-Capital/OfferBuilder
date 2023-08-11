@@ -7,20 +7,40 @@ interface WorkResponse {
 }
 
 interface WorksResponse {
-    works: Work[];
-    last: string | null;
+	works: Work[];
+	last: string | null;
 }
 
 interface WorkCreate {
 	name: string;
 }
 
+interface WorksFilter {
+	name?: string;
+	name_contains?: string;
+}
+
+function filterToURLParams(filter: WorksFilter): string {
+    const params = [];
+    if (filter.name) {
+        params.push(`name=${filter.name}`);
+    }
+    if (filter.name_contains) {
+        params.push(`name_contains=${filter.name_contains}`);
+    }
+    return params.join('&');
+}
+
 export class WorksAPI extends BaseAPI {
-    async getWorks(
-		pagination: PaginationParams = defaultPaginationParams
-    ): Promise<Result<WorksResponse>> {
-		const url = `/works?${asUrlParams(pagination)}`;
-	    return (await this.fetchApi(url, 'GET')) as Result<WorksResponse>;
+	async getWorks(
+		pagination: PaginationParams = defaultPaginationParams,
+		filter: WorksFilter | null = null
+	): Promise<Result<WorksResponse>> {
+		let url = `/works?${asUrlParams(pagination)}`;
+        if (filter) {
+            url += `&${filterToURLParams(filter)}`;
+        }
+		return (await this.fetchApi(url, 'GET')) as Result<WorksResponse>;
 	}
 
 	async createWork(workData: WorkCreate): Promise<Result<Work>> {
