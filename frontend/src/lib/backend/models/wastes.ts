@@ -14,7 +14,8 @@ export function validateFKKOCode(fkko_code: string): boolean {
 export function normalizeName(name: string): string {
 	return name
 		.toLowerCase()
-		.replace(/[^\w а-яё]/g, ' ')
+        .replace(/[^\w а-яё]/g, ' ')
+        .replace(/\s+/g, ' ')
 }
 
 export function normalizeFKKOCode(fkko_code: string): string {
