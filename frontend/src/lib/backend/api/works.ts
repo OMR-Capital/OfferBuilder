@@ -1,12 +1,14 @@
 import { BaseAPI, type Result } from '../base_api';
 import type { Work } from '../models/works';
+import { asUrlParams, defaultPaginationParams, type PaginationParams } from '../pagination';
 
 interface WorkResponse {
 	work: Work;
 }
 
 interface WorksResponse {
-	works: Work[];
+    works: Work[];
+    last: string | null;
 }
 
 interface WorkCreate {
@@ -14,12 +16,11 @@ interface WorkCreate {
 }
 
 export class WorksAPI extends BaseAPI {
-	async getWorks(): Promise<Result<Work[]>> {
-		const result = (await this.fetchApi('/works', 'GET')) as Result<WorksResponse>;
-		if (result.ok) {
-			return { ok: true, value: result.value.works };
-		}
-		return result;
+    async getWorks(
+		pagination: PaginationParams = defaultPaginationParams
+    ): Promise<Result<WorksResponse>> {
+		const url = `/works?${asUrlParams(pagination)}`;
+	    return (await this.fetchApi(url, 'GET')) as Result<WorksResponse>;
 	}
 
 	async createWork(workData: WorkCreate): Promise<Result<Work>> {

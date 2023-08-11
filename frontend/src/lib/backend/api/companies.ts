@@ -1,12 +1,14 @@
 import { BaseAPI, type Result } from '../base_api';
 import type { Company } from '../models/companies';
+import { asUrlParams, defaultPaginationParams, type PaginationParams } from '../pagination';
 
 interface CompanyResponse {
 	company: Company;
 }
 
-interface CompaniesResponse {
+export interface CompaniesResponse {
 	companies: Company[];
+	last: string | null;
 }
 
 interface CompanyCreate {
@@ -14,12 +16,11 @@ interface CompanyCreate {
 }
 
 export class CompaniesAPI extends BaseAPI {
-	async getCompanies(): Promise<Result<Company[]>> {
-		const result = (await this.fetchApi('/companies', 'GET')) as Result<CompaniesResponse>;
-		if (result.ok) {
-			return { ok: true, value: result.value.companies };
-		}
-		return result;
+	async getCompanies(
+		pagination: PaginationParams = defaultPaginationParams
+	): Promise<Result<CompaniesResponse>> {
+		const url = `/companies?${asUrlParams(pagination)}`;
+		return (await this.fetchApi(url, 'GET')) as Result<CompaniesResponse>;
 	}
 
 	async createCompany(companyData: CompanyCreate): Promise<Result<Company>> {
