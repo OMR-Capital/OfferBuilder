@@ -4,6 +4,7 @@ This model represent type of waste that company can recycle.
 WasteItems are passed into offer table.
 """
 
+import re
 import string
 
 from pydantic import BaseModel
@@ -39,7 +40,12 @@ class Waste(BaseModel):
         Returns:
             str: Normalized name.
         """
-        name = name.translate(str.maketrans('', '', string.punctuation))
+        name = re.sub(
+            '[{punctuation}]'.format(punctuation=string.punctuation),
+            ' ',
+            name,
+        )
+        name = re.sub(r'\s+', ' ', name)
         return name.lower()
 
     @classmethod
