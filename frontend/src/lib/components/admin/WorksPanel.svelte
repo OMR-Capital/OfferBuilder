@@ -5,9 +5,10 @@
 	import IconButton from '$lib/components/common/IconButton.svelte';
 	import Snackbar from '$lib/components/common/Snackbar.svelte';
 	import Button, { Icon } from '@smui/button';
-	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
+	import { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
+	import PaginatedTable from '../common/PaginatedTable.svelte';
 	import Panel from '../common/Panel.svelte';
 	import WorkCreateDialog from './WorkCreateDialog.svelte';
 
@@ -20,15 +21,21 @@
 	let works: Work[] = [];
 	let worksLoaded = false;
 
-	async function updateWorks() {
+	const limit = 10;
+	let last: string | null = null;
+	let table: PaginatedTable;
+
+	async function updateWorks(limit: number, last: string | null): Promise<string | null> {
 		worksLoaded = false;
 		const result = await worksApi.getWorks();
+		worksLoaded = true;
 		if (result.ok) {
-			works = result.value;
+			works = result.value.works;
+			return result.value.last;
 		} else {
 			snackbar.show(result.error.message);
 		}
-		worksLoaded = true;
+		return null;
 	}
 
 	let workDeleting: Record<string, boolean> = {};
@@ -42,7 +49,7 @@
 		workDeleting[work_id] = true;
 		const result = await worksApi.deleteWork(work_id);
 		if (result.ok) {
-			updateWorks();
+			await table.reloadPage();
 		} else {
 			snackbar.show(result.error.message);
 		}
@@ -51,20 +58,22 @@
 
 	let createDialogOpen = false;
 
-	onMount(updateWorks);
+	onMount(async () => {
+		await table.firstPage();
+	});
 </script>
 
 <Panel title="Услуги">
 	<div class="table-container">
-		<DataTable table$aria-label="Список услуг" style="width: 100%;">
-			<Head>
+		<PaginatedTable bind:this={table} {limit} bind:last updateItems={updateWorks}>
+			<Head slot="head">
 				<Row>
 					<Cell>ID</Cell>
 					<Cell>Наименование</Cell>
 					<Cell />
 				</Row>
 			</Head>
-			<Body>
+			<Body slot="body">
 				{#each works as work}
 					<Row>
 						<Cell>{work.work_id}</Cell>
@@ -85,7 +94,7 @@
 				aria-label="Загрузка..."
 				slot="progress"
 			/>
-		</DataTable>
+		</PaginatedTable>
 	</div>
 	<div class="add-work-container">
 		<Button
@@ -102,4 +111,8 @@
 
 <Snackbar bind:this={snackbar} />
 
-<WorkCreateDialog {token} bind:open={createDialogOpen} onCreate={updateWorks} />
+<WorkCreateDialog
+	{token}
+	bind:open={createDialogOpen}
+	onCreate={async () => await table.reloadPage()}
+/>

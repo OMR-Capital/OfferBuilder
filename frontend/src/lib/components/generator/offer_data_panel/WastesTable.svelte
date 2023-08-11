@@ -31,7 +31,7 @@
 		wastesLoaded = false;
 		const result = await wastesApi.getWastes();
 		if (result.ok) {
-			availableWastes = result.value;
+			availableWastes = result.value.wastes;
 		} else {
 			snackbar.show(result.error.message);
 		}

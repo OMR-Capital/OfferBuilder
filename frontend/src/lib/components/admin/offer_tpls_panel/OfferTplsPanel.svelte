@@ -4,10 +4,11 @@
 	import OfferTplCreateDialog from '$lib/components/admin/offer_tpls_panel/OfferTplCreateDialog.svelte';
 	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 	import IconButton from '$lib/components/common/IconButton.svelte';
+	import PaginatedTable from '$lib/components/common/PaginatedTable.svelte';
 	import Snackbar from '$lib/components/common/Snackbar.svelte';
 	import Accordion, { Panel as AccordionPanel, Content, Header } from '@smui-extra/accordion';
 	import Button, { Icon } from '@smui/button';
-	import DataTable, { Body, Cell, Head, Row } from '@smui/data-table';
+	import { Body, Cell, Head, Row } from '@smui/data-table';
 	import LinearProgress from '@smui/linear-progress';
 	import { onMount } from 'svelte';
 	import Panel from '../../common/Panel.svelte';
@@ -21,15 +22,21 @@
 	let offerTpls: OfferTpl[] = [];
 	let offerTplsLoaded = false;
 
-	async function updateOfferTpls() {
+	const limit = 10;
+	let last: string | null = null;
+	let table: PaginatedTable;
+
+	async function updateOfferTpls(limit: number, last: string | null): Promise<string | null> {
 		offerTplsLoaded = false;
 		const result = await offerTplsApi.getOfferTpls();
+		offerTplsLoaded = true;
 		if (result.ok) {
-			offerTpls = result.value;
+			offerTpls = result.value.offer_tpls;
+			return result.value.last;
 		} else {
 			snackbar.show(result.error.message);
 		}
-		offerTplsLoaded = true;
+		return null;
 	}
 
 	let offerTplDeleting: Record<string, boolean> = {};
@@ -43,7 +50,7 @@
 		offerTplDeleting[offer_tpl_id] = true;
 		const result = await offerTplsApi.deleteOfferTpl(offer_tpl_id);
 		if (result.ok) {
-			updateOfferTpls();
+			await table.reloadPage();
 		} else {
 			snackbar.show(result.error.message);
 		}
@@ -52,7 +59,9 @@
 
 	let createDialogOpen = false;
 
-	onMount(updateOfferTpls);
+	onMount(async () => {
+		await table.firstPage();
+	});
 </script>
 
 <Panel title="Шаблоны договоров">
@@ -70,8 +79,8 @@
 		</AccordionPanel>
 	</Accordion>
 	<div class="table-container">
-		<DataTable table$aria-label="Список шаблонов" style="width: 100%;">
-			<Head>
+		<PaginatedTable bind:this={table} {limit} bind:last updateItems={updateOfferTpls}>
+			<Head slot="head">
 				<Row>
 					<Cell>ID</Cell>
 					<Cell>Название</Cell>
@@ -79,7 +88,7 @@
 					<Cell />
 				</Row>
 			</Head>
-			<Body>
+			<Body slot="body">
 				{#each offerTpls as offerTpl}
 					<Row>
 						<Cell>{offerTpl.offer_tpl_id}</Cell>
@@ -107,7 +116,7 @@
 				aria-label="Загрузка..."
 				slot="progress"
 			/>
-		</DataTable>
+		</PaginatedTable>
 	</div>
 	<div class="add-offerTpl-container">
 		<Button
@@ -124,7 +133,11 @@
 
 <Snackbar bind:this={snackbar} />
 
-<OfferTplCreateDialog {token} bind:open={createDialogOpen} onCreate={updateOfferTpls} />
+<OfferTplCreateDialog
+	{token}
+	bind:open={createDialogOpen}
+	onCreate={async () => await table.reloadPage()}
+/>
 
 <style>
 	.info-header {

@@ -35,7 +35,7 @@
 	async function updateWastes() {
 		const result = await wastesApi.getWastes();
 		if (result.ok) {
-			availableWastes = result.value;
+			availableWastes = result.value.wastes;
 		} else {
 			snackbar.show(result.error.message);
 		}
@@ -44,7 +44,7 @@
 	async function updateWorks() {
 		const result = await worksApi.getWorks();
 		if (result.ok) {
-			availableWorks = result.value;
+			availableWorks = result.value.works;
 		} else {
 			snackbar.show(result.error.message);
 		}
