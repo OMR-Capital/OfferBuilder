@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Waste } from '$lib/backend/models/wastes';
+	import { normalizeName, type Waste } from '$lib/backend/models/wastes';
 	import type { Work } from '$lib/backend/models/works';
 	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 	import Dialog from '$lib/components/common/dialog/Dialog.svelte';
@@ -12,12 +12,16 @@
 	import Textfield from '@smui/textfield';
 	import type { GeneralRow } from '../types';
 	import { Unit } from '../types';
+	import { WastesAPI } from '$lib/backend/api/wastes';
+	import { WorksAPI } from '$lib/backend/api/works';
 
-	export let availableWastes: Waste[];
-	export let availableWorks: Work[];
+	export let token: string;
 	export let rowNumber: number;
 	export let open = false;
 	export let onConfirm: (generalRow: GeneralRow) => void;
+
+	let wastesApi = new WastesAPI(token);
+	let worksApi = new WorksAPI(token);
 
 	let generalRow: GeneralRow = {
 		num: rowNumber,
@@ -43,16 +47,45 @@
 		}
 	}
 
+	let searchCounter = 0;
+
 	async function searchItem(query: string): Promise<(Waste | Work)[] | false> {
-		if (!query) return false;
-		const wastes = availableWastes.filter((waste) => {
-			return waste.name.toLowerCase().includes(query.toLowerCase());
+		async function _searchItems(query: string): Promise<(Waste | Work)[] | false> {
+			query = normalizeName(query);
+
+			let items: (Waste | Work)[] = [];
+			// get wastes
+			const wastesResult = await wastesApi.getWastes(
+				{ limit: 10, last: null },
+				{ name_contains: query }
+			);
+			if (wastesResult.ok) {
+				items = wastesResult.value.wastes;
+			}
+			// get works
+			const worksResult = await worksApi.getWorks(
+				{ limit: 10, last: null },
+				{ name_contains: query }
+			);
+			if (worksResult.ok) {
+				items = items.concat(worksResult.value.works);
+			}
+			return items;
+		}
+
+		if (query.length < 3) return false;
+
+		const myCounter = ++searchCounter;
+
+		return new Promise((resolve) => {
+			setTimeout(async () => {
+				if (myCounter !== searchCounter) {
+					return;
+				}
+				const items = await _searchItems(query);
+				resolve(items);
+			}, 500);
 		});
-		const works = availableWorks.filter((work) => {
-			return work.name.toLowerCase().includes(query.toLowerCase());
-		});
-		[wastes, works];
-		return [...wastes, ...works];
 	}
 
 	function getItemLabel(item: Waste | Work | undefined): string {
@@ -73,7 +106,7 @@
 	}
 </script>
 
-<Dialog bind:open title="Добавление отхода" {closeHandler}>
+<Dialog fullscreen bind:open title="Добавление отхода" {closeHandler}>
 	<DialogBlock title="Найдите">
 		<Autocomplete
 			label="Наименование отхода или услуги"

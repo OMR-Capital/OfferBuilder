@@ -1,5 +1,11 @@
 <script lang="ts">
-	import type { Waste } from '$lib/backend/models/wastes';
+	import { WastesAPI } from '$lib/backend/api/wastes';
+	import {
+		normalizeFKKOCode,
+		normalizeName,
+		validateFKKOCode,
+		type Waste
+	} from '$lib/backend/models/wastes';
 	import CircularLoader from '$lib/components/common/CircularLoader.svelte';
 	import Dialog from '$lib/components/common/dialog/Dialog.svelte';
 	import DialogBlock from '$lib/components/common/dialog/DialogBlock.svelte';
@@ -12,10 +18,12 @@
 	import type { WasteRow } from '../types';
 	import { Unit } from '../types';
 
-	export let availableWastes: Waste[];
+	export let token: string;
 	export let rowNumber: number;
 	export let open = false;
 	export let onConfirm: (wasteRow: WasteRow) => void;
+
+	let wastesApi = new WastesAPI(token);
 
 	let wasteRow: WasteRow = {
 		num: rowNumber,
@@ -43,23 +51,52 @@
 		}
 	}
 
+	let searchCounter = 0;
+
 	async function searchWaste(query: string): Promise<Waste[] | false> {
-		if (!query) return false;
-		return availableWastes.filter((waste) => {
-			return (
-				waste.name.toLowerCase().includes(query.toLowerCase()) ||
-				waste.fkko_code.toLowerCase().includes(query.toLowerCase())
-			);
+		async function _searchWaste(query: string): Promise<Waste[] | false> {
+			let wastes: Waste[] = [];
+			if (validateFKKOCode(query)) {
+				query = normalizeFKKOCode(query);
+				const result = await wastesApi.getWastes(
+					{ limit: 10, last: null },
+					{ fkko_code_prefix: query }
+				);
+				if (result.ok) {
+					wastes = result.value.wastes;
+				}
+			} else {
+				query = normalizeName(query);
+				const result = await wastesApi.getWastes(
+					{ limit: 10, last: null },
+					{ name_contains: query }
+				);
+				if (result.ok) {
+					wastes = result.value.wastes;
+				}
+			}
+			return wastes;
+		}
+
+		if (query.length < 3) return false;
+
+		const myCounter = ++searchCounter;
+
+		return new Promise((resolve) => {
+			setTimeout(async () => {
+				if (myCounter !== searchCounter) {
+                    return;
+                }
+                const wastes = await _searchWaste(query);
+                resolve(wastes);
+			}, 500);
 		});
 	}
 
 	function getWasteLabel(waste: Waste | undefined): string {
 		if (!waste) return '';
 
-		let wasteLabel = waste.fkko_code ? `${waste.name} (${waste.fkko_code})` : waste.name;
-		if (wasteLabel.length > 30) {
-			wasteLabel = wasteLabel.slice(0, 30) + '...';
-		}
+		const wasteLabel = `${waste.name} (${waste.fkko_code})`;
 		return wasteLabel;
 	}
 
@@ -82,7 +119,7 @@
 	}
 </script>
 
-<Dialog bind:open title="Добавление отхода" {closeHandler}>
+<Dialog fullscreen bind:open title="Добавление отхода" {closeHandler}>
 	<DialogBlock title="Найдите">
 		<Autocomplete
 			label="Наименование или ФККО"
