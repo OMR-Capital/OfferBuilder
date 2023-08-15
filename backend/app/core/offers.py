@@ -62,7 +62,7 @@ class OffersService(object):
             last=pagination.last,
         )
         offers = [
-            Offer(**db_offer)
+            Offer.parse_obj(db_offer)
             for db_offer in response.items
         ]
         return PaginationResponse(
@@ -86,17 +86,19 @@ class OffersService(object):
         if not db_offer:
             raise OfferNotFoundError()
 
-        return Offer(**db_offer)
+        return Offer.parse_obj(db_offer)
 
     async def create_offer(
         self,
         name: str,
+        created_by: str,
         offer_file: bytes,
     ) -> Offer:
         """Create offer.
 
         Args:
             name (str): Offer name
+            created_by (str): Offer creator name
             offer_file (bytes): Offer file data
 
         Returns:
@@ -108,6 +110,7 @@ class OffersService(object):
         offer = Offer(
             offer_id=offer_id,
             name=name,
+            created_by=created_by,
         )
         self.base.put(serialize_model(offer), offer_id)
 
@@ -142,7 +145,7 @@ class OffersService(object):
         if offer_file:
             await self._update_offer_file(offer_id, offer_file)
 
-        return Offer(**db_offer)
+        return Offer.parse_obj(db_offer)
 
     async def delete_offer(self, offer_id: str) -> Offer:
         """Delete offer.
@@ -163,11 +166,12 @@ class OffersService(object):
         self.base.delete(offer_id)
         self.drive.delete(offer_id)
 
-        return Offer(**db_offer)
+        return Offer.parse_obj(db_offer)
 
     async def build_offer(
         self,
         name: str,
+        created_by: str,
         context: dict[str, Any],
         offer_tpl_file: bytes,
     ) -> Offer:
@@ -175,6 +179,7 @@ class OffersService(object):
 
         Args:
             name (str): Offer name
+            created_by (str): Offer creator name
             context (dict[str, Any]): Offer context data
             offer_tpl_file (bytes): Offer template file data
 
@@ -188,7 +193,7 @@ class OffersService(object):
         """
         offer_file = self._fill_offer(offer_tpl_file, context)
 
-        offer = await self.create_offer(name, offer_file)
+        offer = await self.create_offer(name, created_by, offer_file)
         await self._update_offer_file(offer.offer_id, offer_file)
 
         return offer

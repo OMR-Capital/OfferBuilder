@@ -7,6 +7,7 @@
 	import WastesPanel from '$lib/components/admin/WastesPanel.svelte';
 	import WorksPanel from '$lib/components/admin/WorksPanel.svelte';
 	import OfferTplsPanel from '$lib/components/admin/offer_tpls_panel/OfferTplsPanel.svelte';
+	import OffersPanel from '$lib/components/admin/OffersPanel.svelte';
 
 	export let data;
 </script>
@@ -18,6 +19,7 @@
         <WastesPanel token={data.token} />
         <WorksPanel token={data.token} />
         <OfferTplsPanel token={data.token} />
+        <OffersPanel token={data.token} />
     </div>
 {:else}
     <Card>

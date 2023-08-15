@@ -56,7 +56,7 @@ async def get_authorized_user(token: str) -> Optional[User]:
     if db_user is None:
         return None
 
-    return User(**db_user)
+    return User.parse_obj(db_user)
 
 
 async def get_verified_admin(user: User) -> Optional[User]:
@@ -108,7 +108,7 @@ class UsersService(object):
             limit=pagination.limit,
             last=pagination.last,
         )
-        users = [User(**db_user) for db_user in response.items]
+        users = [User.parse_obj(db_user) for db_user in response.items]
         return PaginationResponse(
             items=users,
             last=response.last,
@@ -130,7 +130,7 @@ class UsersService(object):
         if db_user is None:
             raise UserNotFoundError()
 
-        return User(**db_user)
+        return User.parse_obj(db_user)
 
     async def create_user(
         self,
@@ -198,7 +198,7 @@ class UsersService(object):
 
         self.base.put(db_user, uid)
 
-        return User(**db_user)
+        return User.parse_obj(db_user)
 
     async def update_user_password(self, uid: str) -> tuple[User, str]:
         """Update user password.
@@ -220,7 +220,7 @@ class UsersService(object):
         db_user['password_hash'] = get_password_hash(password)
         self.base.put(db_user, uid)
 
-        return User(**db_user), password
+        return User.parse_obj(db_user), password
 
     async def delete_user(self, uid: str) -> User:
         """Delete user.
@@ -240,7 +240,7 @@ class UsersService(object):
 
         self.base.delete(uid)
 
-        return User(**db_user)
+        return User.parse_obj(db_user)
 
     async def _check_login(self, login: str) -> bool:
         """Check if login is already taken.
