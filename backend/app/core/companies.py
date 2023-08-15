@@ -42,7 +42,10 @@ class CompaniesService(object):
             limit=pagination.limit,
             last=pagination.last,
         )
-        companies = [Company.parse_obj(db_company) for db_company in response.items]
+        companies = [
+            Company.parse_obj(db_company)
+            for db_company in response.items
+        ]
         return PaginationResponse(
             items=companies,
             last=response.last,
