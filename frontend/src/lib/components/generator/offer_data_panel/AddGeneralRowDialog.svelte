@@ -47,6 +47,7 @@
 		}
 	}
 
+    const limit = 1000;
 	let searchCounter = 0;
 
 	async function searchItem(query: string): Promise<(Waste | Work)[] | false> {
@@ -56,7 +57,7 @@
 			let items: (Waste | Work)[] = [];
 			// get wastes
 			const wastesResult = await wastesApi.getWastes(
-				{ limit: 10, last: null },
+				{ limit: limit, last: null },
 				{ name_contains: query }
 			);
 			if (wastesResult.ok) {
@@ -64,7 +65,7 @@
 			}
 			// get works
 			const worksResult = await worksApi.getWorks(
-				{ limit: 10, last: null },
+				{ limit: limit, last: null },
 				{ name_contains: query }
 			);
 			if (worksResult.ok) {
@@ -112,6 +113,7 @@
 			label="Наименование отхода или услуги"
 			style="width: 100%;"
 			textfield$style="width: 100%;"
+            menu$style="max-width: 100%;"
 			search={searchItem}
 			getOptionLabel={getItemLabel}
 			bind:value={selectedItem}

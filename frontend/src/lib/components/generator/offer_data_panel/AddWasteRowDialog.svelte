@@ -51,6 +51,7 @@
 		}
 	}
 
+    const limit = 1000;
 	let searchCounter = 0;
 
 	async function searchWaste(query: string): Promise<Waste[] | false> {
@@ -59,7 +60,7 @@
 			if (validateFKKOCode(query)) {
 				query = normalizeFKKOCode(query);
 				const result = await wastesApi.getWastes(
-					{ limit: 10, last: null },
+					{ limit: limit, last: null },
 					{ fkko_code_prefix: query }
 				);
 				if (result.ok) {
@@ -68,7 +69,7 @@
 			} else {
 				query = normalizeName(query);
 				const result = await wastesApi.getWastes(
-					{ limit: 10, last: null },
+					{ limit: limit, last: null },
 					{ name_contains: query }
 				);
 				if (result.ok) {
@@ -125,6 +126,7 @@
 			label="Наименование или ФККО"
 			style="width: 100%;"
 			textfield$style="width: 100%;"
+            menu$style="max-width: 100%;"
 			search={searchWaste}
 			getOptionLabel={getWasteLabel}
 			bind:value={selectedWaste}
