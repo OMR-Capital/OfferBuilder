@@ -42,7 +42,7 @@ class CompaniesService(object):
             limit=pagination.limit,
             last=pagination.last,
         )
-        companies = [Company(**db_company) for db_company in response.items]
+        companies = [Company.parse_obj(db_company) for db_company in response.items]
         return PaginationResponse(
             items=companies,
             last=response.last,
@@ -64,7 +64,7 @@ class CompaniesService(object):
         if db_company is None:
             raise CompanyNotFoundError()
 
-        return Company(**db_company)
+        return Company.parse_obj(db_company)
 
     async def create_company(self, name: str) -> Company:
         """Create company.
@@ -104,7 +104,7 @@ class CompaniesService(object):
         db_company['name'] = name
         self.base.put(db_company, company_id)
 
-        return Company(**db_company)
+        return Company.parse_obj(db_company)
 
     async def delete_company(self, company_id: str) -> Company:
         """Delete company.
@@ -124,4 +124,4 @@ class CompaniesService(object):
 
         self.base.delete(company_id)
 
-        return Company(**db_company)
+        return Company.parse_obj(db_company)

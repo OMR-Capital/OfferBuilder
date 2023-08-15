@@ -119,7 +119,7 @@ class WastesService(object):
             limit=pagination.limit,
             last=pagination.last,
         )
-        wastes = [Waste(**db_waste) for db_waste in response.items]
+        wastes = [Waste.parse_obj(db_waste) for db_waste in response.items]
         return PaginationResponse(
             items=wastes,
             last=response.last,
@@ -141,7 +141,7 @@ class WastesService(object):
         if db_waste is None:
             raise WasteNotFoundError()
 
-        return Waste(**db_waste)
+        return Waste.parse_obj(db_waste)
 
     async def create_waste(
         self,
@@ -208,7 +208,7 @@ class WastesService(object):
             db_waste['fkko_code'] = fkko_code
 
         self.base.put(db_waste, waste_id)
-        return Waste(**db_waste)
+        return Waste.parse_obj(db_waste)
 
     async def delete_waste(self, waste_id: str) -> Waste:
         """Delete waste.
@@ -228,7 +228,7 @@ class WastesService(object):
 
         self.base.delete(waste_id)
 
-        return Waste(**db_waste)
+        return Waste.parse_obj(db_waste)
 
     def _validate_fkko_code(self, fkko_code: str) -> bool:
         """Validate FKKO code.

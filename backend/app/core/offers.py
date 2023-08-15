@@ -62,7 +62,7 @@ class OffersService(object):
             last=pagination.last,
         )
         offers = [
-            Offer(**db_offer)
+            Offer.parse_obj(db_offer)
             for db_offer in response.items
         ]
         return PaginationResponse(
@@ -86,7 +86,7 @@ class OffersService(object):
         if not db_offer:
             raise OfferNotFoundError()
 
-        return Offer(**db_offer)
+        return Offer.parse_obj(db_offer)
 
     async def create_offer(
         self,
@@ -142,7 +142,7 @@ class OffersService(object):
         if offer_file:
             await self._update_offer_file(offer_id, offer_file)
 
-        return Offer(**db_offer)
+        return Offer.parse_obj(db_offer)
 
     async def delete_offer(self, offer_id: str) -> Offer:
         """Delete offer.
@@ -163,7 +163,7 @@ class OffersService(object):
         self.base.delete(offer_id)
         self.drive.delete(offer_id)
 
-        return Offer(**db_offer)
+        return Offer.parse_obj(db_offer)
 
     async def build_offer(
         self,

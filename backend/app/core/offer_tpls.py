@@ -57,7 +57,7 @@ class OfferTemplatesService(object):
             last=pagination.last,
         )
         offer_tpls = [
-            OfferTemplate(**db_offer_tpl)
+            OfferTemplate.parse_obj(db_offer_tpl)
             for db_offer_tpl in response.items
         ]
         return PaginationResponse(
@@ -81,7 +81,7 @@ class OfferTemplatesService(object):
         if not db_offer_tpl:
             raise OfferTemplateNotFoundError()
 
-        return OfferTemplate(**db_offer_tpl)
+        return OfferTemplate.parse_obj(db_offer_tpl)
 
     async def create_offer_tpl(
         self,
@@ -141,7 +141,7 @@ class OfferTemplatesService(object):
         if offer_tpl_file:
             await self._update_offer_tpl_file(offer_tpl_id, offer_tpl_file)
 
-        return OfferTemplate(**db_offer_tpl)
+        return OfferTemplate.parse_obj(db_offer_tpl)
 
     async def delete_offer_tpl(self, offer_tpl_id: str) -> OfferTemplate:
         """Delete offer template.
@@ -162,7 +162,7 @@ class OfferTemplatesService(object):
         self.base.delete(offer_tpl_id)
         self.drive.delete(offer_tpl_id)
 
-        return OfferTemplate(**db_offer_tpl)
+        return OfferTemplate.parse_obj(db_offer_tpl)
 
     async def get_offer_tpl_file(
         self,

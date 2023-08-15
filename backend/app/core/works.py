@@ -89,7 +89,7 @@ class WorksService(object):
             limit=pagination.limit,
             last=pagination.last,
         )
-        works = [Work(**db_work) for db_work in response.items]
+        works = [Work.parse_obj(db_work) for db_work in response.items]
         return PaginationResponse(
             items=works,
             last=response.last,
@@ -111,7 +111,7 @@ class WorksService(object):
         if db_work is None:
             raise WorkNotFoundError()
 
-        return Work(**db_work)
+        return Work.parse_obj(db_work)
 
     async def create_work(self, name: str) -> Work:
         """Create a new work.
@@ -155,7 +155,7 @@ class WorksService(object):
         db_work['name'] = name or db_work['name']
         self.base.put(db_work, work_id)
 
-        return Work(**db_work)
+        return Work.parse_obj(db_work)
 
     async def delete_work(self, work_id: str) -> Work:
         """Delete work.
@@ -174,4 +174,4 @@ class WorksService(object):
             raise WorkNotFoundError()
 
         self.base.delete(work_id)
-        return Work(**db_work)
+        return Work.parse_obj(db_work)
