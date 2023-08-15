@@ -132,6 +132,7 @@ async def create_offer(
 
     offer = await service.create_offer(
         name=offer_data.name,
+        created_by=admin.name,
         offer_file=offer_file,
     )
     return OfferResponse(offer=offer)

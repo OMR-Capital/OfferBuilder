@@ -91,12 +91,14 @@ class OffersService(object):
     async def create_offer(
         self,
         name: str,
+        created_by: str,
         offer_file: bytes,
     ) -> Offer:
         """Create offer.
 
         Args:
             name (str): Offer name
+            created_by (str): Offer creator name
             offer_file (bytes): Offer file data
 
         Returns:
@@ -108,6 +110,7 @@ class OffersService(object):
         offer = Offer(
             offer_id=offer_id,
             name=name,
+            created_by=created_by,
         )
         self.base.put(serialize_model(offer), offer_id)
 
@@ -168,6 +171,7 @@ class OffersService(object):
     async def build_offer(
         self,
         name: str,
+        created_by: str,
         context: dict[str, Any],
         offer_tpl_file: bytes,
     ) -> Offer:
@@ -175,6 +179,7 @@ class OffersService(object):
 
         Args:
             name (str): Offer name
+            created_by (str): Offer creator name
             context (dict[str, Any]): Offer context data
             offer_tpl_file (bytes): Offer template file data
 
@@ -188,7 +193,7 @@ class OffersService(object):
         """
         offer_file = self._fill_offer(offer_tpl_file, context)
 
-        offer = await self.create_offer(name, offer_file)
+        offer = await self.create_offer(name, created_by, offer_file)
         await self._update_offer_file(offer.offer_id, offer_file)
 
         return offer

@@ -15,6 +15,9 @@ class Offer(BaseModel):
     # Offer name
     name: str
 
+    # Author name
+    created_by: str
+
     # Create time
     created_at: datetime = Field(default_factory=datetime.now)
 

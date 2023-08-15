@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from app.api.dependencies.auth import get_admin, get_current_user
-from app.api.dependencies.offers import get_offers_service
 from app.api.dependencies.offer_tpls import get_offer_tpls_service
+from app.api.dependencies.offers import get_offers_service
 from app.api.exceptions.offer_tpls import (
     BadOfferTemplateFile,
     OfferTemplateNotFound,
@@ -252,6 +252,7 @@ async def build_offer_tpl(
     offer_tpl_file = offer_tpl_stream.read()
     offer = await offers_service.build_offer(
         name=offer_tpl.name,
+        created_by=user.name,
         context=offer_data.context,
         offer_tpl_file=offer_tpl_file,
     )
