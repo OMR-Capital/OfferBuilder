@@ -6,6 +6,7 @@
 	import OfferTplsPanel from '$lib/components/generator/OfferTplsPanel.svelte';
 	import OfferDataPanel from '$lib/components/generator/offer_data_panel/OfferDataPanel.svelte';
 	import type { OfferContext } from '$lib/components/generator/types.js';
+	import DatePanel from '$lib/components/generator/DatePanel.svelte';
 
 	export let data;
 
@@ -21,8 +22,9 @@
 		token={data.token}
 		bind:offerType={offerContext.offerType}
 		bind:offerData={offerContext.offerData}
-        bind:offerTotal={offerContext.offerTotal}
+		bind:offerTotal={offerContext.offerTotal}
 	/>
+	<DatePanel bind:date={offerContext.date} />
 	<BuildOfferPanel token={data.token} bind:offerContext bind:offerTpl />
 </div>
 

@@ -36,11 +36,6 @@
 		} else {
 			offerCreating = true;
 			offerContext.author = $user;
-			offerContext.date = new Date().toLocaleDateString('ru-RU', {
-				year: 'numeric',
-				month: 'long',
-				day: 'numeric'
-			});
 
 			const result = await offerTplsApi.buildOffer(offerTpl.offer_tpl_id, offerContext);
 			if (!result.ok) {
