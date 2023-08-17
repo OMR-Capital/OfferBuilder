@@ -15,7 +15,7 @@
 </script>
 
 <div class="panels-container">
-	<OfferTplsPanel token={data.token} bind:selectedOfferTpl={offerTpl} />
+	<!-- <OfferTplsPanel token={data.token} bind:selectedOfferTpl={offerTpl} /> -->
 	<CompaniesPanel token={data.token} bind:selectedCompany={offerContext.company} />
 	<AgentsPanel token={data.token} bind:agent={offerContext.agent} />
 	<OfferDataPanel

@@ -9,7 +9,9 @@
 	import Button, { Icon, Label } from '@smui/button';
 	import CircularLoader from '../common/CircularLoader.svelte';
 	import Snackbar from '../common/Snackbar.svelte';
-	import type { OfferContext } from './types';
+	import { type OfferContext, OfferType } from './types';
+	import { onMount } from 'svelte';
+	import type { Company } from '$lib/backend/models/companies';
 
 	export let token: string;
 	export let offerTpl: OfferTpl | null = null;
@@ -17,20 +19,26 @@
 
 	const offerTplsApi = new OfferTplsAPI(token);
 	const offersApi = new OffersAPI(token);
+	let offerTpls: OfferTpl[] = [];
 
 	let createdOffer: Offer | null = null;
 
 	let offerCreating = false;
 
 	async function buildOffer() {
+		if (!offerContext.company) {
+			snackbar.show('Не выбрана организация');
+			return;
+		} else if (!offerContext.offerType) {
+			snackbar.show('Не выбран тип документа');
+			return;
+		}
+		selectOfferTpl(offerContext.company, offerContext.offerType);
+
 		if (!offerTpl) {
 			snackbar.show('Не выбран шаблон');
 		} else if (!offerContext.agent) {
 			snackbar.show('Не выбран контр-агент');
-		} else if (!offerContext.company) {
-			snackbar.show('Не выбрана организация');
-		} else if (!offerContext.offerType) {
-			snackbar.show('Не выбран тип документа');
 		} else if (!offerContext.offerData) {
 			snackbar.show('Не введены данные документа');
 		} else {
@@ -48,7 +56,27 @@
 		}
 	}
 
+	async function updateOfferTpls() {
+		const result = await offerTplsApi.getOfferTpls();
+		if (result.ok) {
+			offerTpls = result.value.offer_tpls;
+		} else {
+			snackbar.show(result.error.message);
+		}
+	}
+
+    // Select template by company and type
+    // I suppose it is temporary trick, until customer agree with
+    // offer selection menu.
+	function selectOfferTpl(company: Company, offerType: OfferType) {
+		const offerTypeName = offerType === OfferType.Wastes ? 'wastes' : 'general';
+		const tplName = `${company.company_id}-${offerTypeName}-0`;
+		offerTpl = offerTpls.find((tpl) => tpl.name === tplName) ?? null;
+	}
+
 	let snackbar: Snackbar;
+
+	onMount(updateOfferTpls);
 </script>
 
 <Panel title="Создание КП">
